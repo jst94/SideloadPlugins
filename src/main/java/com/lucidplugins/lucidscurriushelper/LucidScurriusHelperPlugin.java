@@ -14,7 +14,6 @@ import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
-import org.pf4j.Extension;
 
 import javax.inject.Inject;
 import java.util.*;
@@ -85,10 +84,7 @@ public class LucidScurriusHelperPlugin extends Plugin
         NPC npc = (NPC) event.getActor();
         if (npc.getName() != null && npc.getName().equals("Scurrius") && npc.getAnimation() == 10705 && NpcUtils.getNearestNpc("Giant rat") == null)
         {
-            if (config.autoPray())
-            {
-                CombatUtils.deactivatePrayers(false);
-            }
+            CombatUtils.deactivatePrayers(false);
         }
     }
 
@@ -115,13 +111,9 @@ public class LucidScurriusHelperPlugin extends Plugin
         if (!attacks.contains(projectile))
         {
             attacks.add(projectile);
-            if (config.autoPray())
-            {
-                CombatUtils.deactivatePrayer(Prayer.PROTECT_FROM_MELEE);
-            }
+            CombatUtils.deactivatePrayer(Prayer.PROTECT_FROM_MELEE);
         }
     }
-
 
     @Subscribe
     private void onGameTick(GameTick event)
@@ -151,13 +143,13 @@ public class LucidScurriusHelperPlugin extends Plugin
 
         if (!justDodged)
         {
-            if (config.attackAfterDodge() && client.getLocalPlayer().getInteracting() != scurrius)
+            if (client.getLocalPlayer().getInteracting() != scurrius)
             {
                 if (ticksSinceLastDodge() < 3)
                 {
                     if (scurrius != null)
                     {
-                        if (!config.prioritizeRats() || getEligibleRat() == null)
+                        if (getEligibleRat() == null)
                         {
                             NpcUtils.attackNpc(scurrius);
                         }
@@ -186,22 +178,19 @@ public class LucidScurriusHelperPlugin extends Plugin
             return;
         }
 
-        if (config.attackRats() && attackRat || (config.prioritizeRats()))
+        NPC giantRat = getEligibleRat();
+        if (giantRat != null && giantRat != client.getLocalPlayer().getInteracting())
         {
-            NPC giantRat = getEligibleRat();
-            if (giantRat != null && giantRat != client.getLocalPlayer().getInteracting())
+            NpcUtils.attackNpc(giantRat);
+            lastRatTick = client.getTickCount();
+        }
+        else
+        {
+            if (giantRat == null)
             {
-                NpcUtils.attackNpc(giantRat);
-                lastRatTick = client.getTickCount();
-            }
-            else
-            {
-                if (config.prioritizeRats() && giantRat == null)
+                if (scurrius != null && ticksSinceLatRatHit() < 8 && client.getLocalPlayer().getInteracting() != scurrius)
                 {
-                    if (scurrius != null && ticksSinceLatRatHit() < 8 && client.getLocalPlayer().getInteracting() != scurrius)
-                    {
-                        NpcUtils.attackNpc(scurrius);
-                    }
+                    NpcUtils.attackNpc(scurrius);
                 }
             }
         }
@@ -209,11 +198,6 @@ public class LucidScurriusHelperPlugin extends Plugin
 
     private void handlePrayers()
     {
-        if (!config.autoPray())
-        {
-            return;
-        }
-
         Prayer prayer = null;
         for (Projectile projectile : attacks)
         {
@@ -265,13 +249,9 @@ public class LucidScurriusHelperPlugin extends Plugin
     {
         if (event.getNpc().getId() == SCURRIUS || event.getNpc().getId() == SCURRIUS_PUBLIC)
         {
-            if (config.attackOnSpawn())
-            {
-                lastDodgeTick = client.getTickCount();
-            }
+            lastDodgeTick = client.getTickCount();
         }
     }
-
 
     private void dodgeFallingCeiling()
     {
@@ -292,15 +272,7 @@ public class LucidScurriusHelperPlugin extends Plugin
                         continue;
                     }
 
-                    if (config.stayMelee())
-                    {
-                        safeTile = InteractionUtils.getClosestSafeLocationInNPCMeleeDistance(unsafeTiles, scurrius);
-                    }
-                    else
-                    {
-                        safeTile = InteractionUtils.getClosestSafeLocationNotInNPCMeleeDistance(unsafeTiles, scurrius);
-
-                    }
+                    safeTile = InteractionUtils.getClosestSafeLocationInNPCMeleeDistance(unsafeTiles, scurrius);
 
                     if (safeTile != null)
                     {
