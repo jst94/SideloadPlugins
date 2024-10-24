@@ -9,19 +9,10 @@ public interface JstFletchConfig extends Config {
     @ConfigItem(
         keyName = "logType",
         name = "Log Type",
-        description = "The type of log to use for fletching"
+        description = "The type of log to use for fletching (e.g., normal logs, oak logs, etc.)"
     )
     default int getLogType() {
         return 1511; // Default to normal logs
-    }
-
-    @ConfigItem(
-        keyName = "fletchingOption",
-        name = "Fletching Option",
-        description = "The fletching option to choose"
-    )
-    default int getFletchingOption() {
-        return 1; // Default to first option
     }
 
     @ConfigItem(

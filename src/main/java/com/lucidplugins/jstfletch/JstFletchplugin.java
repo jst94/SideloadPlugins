@@ -37,6 +37,7 @@ public class JstFletchplugin extends Plugin {
     private long startTime = 0L;
     private int startExperience = 0;
     private int startLevel = 0;
+    private int fletchingProduct = -1;
 
     @Override
     protected void startUp() throws Exception {
@@ -95,6 +96,7 @@ public class JstFletchplugin extends Plugin {
             }
         }
 
+        calculateFletchingProduct();
         state.setCurrentState(FletchingState.State.FLETCHING);
     }
 
@@ -109,6 +111,7 @@ public class JstFletchplugin extends Plugin {
                 InventoryUtils.getFirstItem(ItemID.KNIFE),
                 InventoryUtils.getFirstItem(config.getLogType())
             );
+            InventoryUtils.selectMenuOption(fletchingProduct);
         }
     }
 
@@ -125,6 +128,37 @@ public class JstFletchplugin extends Plugin {
         if (GrandExchange.hasCompletedOrder()) {
             GrandExchange.collectItems();
             state.setCurrentState(FletchingState.State.BANKING);
+        }
+    }
+
+    private void calculateFletchingProduct() {
+        int fletchingLevel = client.getRealSkillLevel(Skill.FLETCHING);
+        int logType = config.getLogType();
+
+        if (fletchingLevel >= 85) {
+            fletchingProduct = 2; // Magic longbow
+        } else if (fletchingLevel >= 80) {
+            fletchingProduct = 1; // Magic shortbow
+        } else if (fletchingLevel >= 70) {
+            fletchingProduct = 2; // Yew longbow
+        } else if (fletchingLevel >= 65) {
+            fletchingProduct = 1; // Yew shortbow
+        } else if (fletchingLevel >= 55) {
+            fletchingProduct = 2; // Maple longbow
+        } else if (fletchingLevel >= 50) {
+            fletchingProduct = 1; // Maple shortbow
+        } else if (fletchingLevel >= 40) {
+            fletchingProduct = 2; // Willow longbow
+        } else if (fletchingLevel >= 35) {
+            fletchingProduct = 1; // Willow shortbow
+        } else if (fletchingLevel >= 25) {
+            fletchingProduct = 2; // Oak longbow
+        } else if (fletchingLevel >= 20) {
+            fletchingProduct = 1; // Oak shortbow
+        } else if (fletchingLevel >= 10) {
+            fletchingProduct = 2; // Longbow
+        } else {
+            fletchingProduct = 1; // Shortbow
         }
     }
 
