@@ -11,10 +11,14 @@ import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.events.ConfigChanged;
 import javax.inject.Inject;
+import com.example.EthanApiPlugin.*;
 
-import com.lucidplugins.api.utils.BankUtils;
-import com.lucidplugins.api.utils.InventoryUtils;
+import com.example.EthanApiPlugin.EthanApiPlugin;
+import com.example.EthanApiPlugin.Collections.Inventory;
+import com.example.Packets.MousePackets;
+import com.example.Packets.WidgetPackets;
 import com.google.inject.Provides;
+import com.lucidplugins.api.utils.BankUtils;
 
 @PluginDescriptor(
         name = "JSTFLETCHER",
@@ -83,15 +87,15 @@ public class JstFletchplugin extends Plugin {
             return;
         }
 
-        if (InventoryUtils.getFreeSlots() == 0) {
+        if (Inventory.getEmptySlots() == 0) {
             BankUtils.depositAll();
             BankUtils.withdraw1(ItemID.KNIFE);
             return;
         }
 
-        if (InventoryUtils.getFreeSlots() == 27) {
+        if (Inventory.getEmptySlots() == 27) {
             BankUtils.withdrawAll(config.getLogType());
-            if (!InventoryUtils.contains(ItemID.KNIFE)) {
+            if (!Inventory.search().withId(ItemID.KNIFE).first().isPresent()) {
                 BankUtils.withdraw1(ItemID.KNIFE);
             }
         }
@@ -101,23 +105,22 @@ public class JstFletchplugin extends Plugin {
     }
 
     private void handleFletching() {
-        if (InventoryUtils.getFreeSlots() == 28 || !InventoryUtils.contains(ItemID.KNIFE)) {
+        if (Inventory.getEmptySlots() == 28 || !Inventory.search().withId(ItemID.KNIFE).first().isPresent()) {
             state.setCurrentState(FletchingState.State.BANKING);
             return;
         }
 
         if (client.getWidget(270, 1) == null) { // Check if fletching interface is not open
-            InventoryUtils.itemOnItem(
-                InventoryUtils.getFirstItem(ItemID.KNIFE),
-                InventoryUtils.getFirstItem(config.getLogType())
-            );
-            InventoryUtils.selectMenuOption(fletchingProduct);
+            MousePackets.queueClickPacket();
+            WidgetPackets.queueWidgetOnWidget(Inventory.search().withId(ItemID.KNIFE).first().get(), Inventory.search().withId(config.getLogType()).first().get());
+            MousePackets.queueClickPacket();
+            WidgetPackets.queueResumePause(fletchingProduct, 1);
         }
     }
 
     private void handleBuyingSupplies() throws InterruptedException {
         if (!GrandExchange.isOpen()) {
-            GrandExchange.open();
+            GrandExchange.collect(); // Changed from openCollectionBox to collect
             return;
         }
 
@@ -126,7 +129,7 @@ public class JstFletchplugin extends Plugin {
         }
 
         if (GrandExchange.hasCompletedOrder()) {
-            GrandExchange.collectItems();
+            GrandExchange.collect();
             state.setCurrentState(FletchingState.State.BANKING);
         }
     }

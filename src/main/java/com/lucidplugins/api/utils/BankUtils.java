@@ -2,7 +2,6 @@ package com.lucidplugins.api.utils;
 
 import com.example.EthanApiPlugin.Collections.Bank;
 import com.example.InteractionApi.BankInteraction;
-import com.example.Packets.MousePackets;
 import com.example.Packets.WidgetPackets;
 import net.runelite.api.Client;
 import net.runelite.api.widgets.Widget;
@@ -11,30 +10,28 @@ import net.runelite.client.RuneLite;
 
 public class BankUtils
 {
-
+    private static final int BANK_CLOSE_SCRIPT_ID = 29;
     static Client client = RuneLite.getInjector().getInstance(Client.class);
+
     public static boolean isOpen()
     {
+        @SuppressWarnings("deprecation")
         Widget bankWidget = client.getWidget(WidgetInfo.BANK_ITEM_CONTAINER);
-        if (bankWidget != null && !bankWidget.isSelfHidden())
-        {
-            return true;
-        }
-
-        return false;
+        return bankWidget != null && !bankWidget.isSelfHidden();
     }
 
-    public static void depositAll() {
+    public static void depositAll()
+    {
         Widget depositInventory = client.getWidget(WidgetInfo.BANK_DEPOSIT_INVENTORY);
-        if (depositInventory != null && !depositInventory.isSelfHidden()) {
-            InteractionUtils.queueClickPacketCoordinateArea();
+        if (depositInventory != null && !depositInventory.isSelfHidden())
+        {
             WidgetPackets.queueWidgetAction(depositInventory, "Deposit inventory");
         }
     }
 
     public static boolean withdraw1(int id)
     {
-        if (Bank.search().withId(id).first().isEmpty())
+        if (!isOpen() || Bank.search().withId(id).first().isEmpty())
         {
             return false;
         }
@@ -45,7 +42,7 @@ public class BankUtils
 
     public static boolean withdrawAll(int id)
     {
-        if (Bank.search().withId(id).first().isEmpty())
+        if (!isOpen() || Bank.search().withId(id).first().isEmpty())
         {
             return false;
         }
@@ -58,7 +55,7 @@ public class BankUtils
     {
         if (isOpen())
         {
-            client.runScript(29);
+            client.runScript(BANK_CLOSE_SCRIPT_ID);
         }
     }
 }

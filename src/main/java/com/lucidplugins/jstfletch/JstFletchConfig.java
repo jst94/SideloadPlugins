@@ -59,4 +59,14 @@ public interface JstFletchConfig extends Config {
     default boolean useWikiPrices() {
         return false;
     }
+
+    @ConfigItem(
+        keyName = "knifeItemId",
+        name = "Knife Item ID",
+        description = "The item ID of the knife to use"
+    )
+    default int getKnifeItemId() {
+        return 946; // Default knife item ID
+    }
 }
+
