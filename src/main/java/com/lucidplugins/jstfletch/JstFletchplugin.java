@@ -120,7 +120,7 @@ public class JstFletchplugin extends Plugin {
 
     private void handleBuyingSupplies() throws InterruptedException {
         if (!GrandExchange.isOpen()) {
-            GrandExchange.collect(); // Changed from openCollectionBox to collect
+            GrandExchange.collect();
             return;
         }
 
@@ -171,15 +171,16 @@ public class JstFletchplugin extends Plugin {
             return;
         }
 
-        if (event.getKey().equals("startButton")) {
+        if (event.getKey().equals("startFletching")) {
             if (config.startFletching()) {
                 started = true;
                 startTime = System.currentTimeMillis();
                 startExperience = client.getSkillExperience(Skill.FLETCHING);
                 startLevel = client.getRealSkillLevel(Skill.FLETCHING);
+                state = new FletchingState(); // Create new state
                 state.setCurrentState(FletchingState.State.BANKING);
             }
-        } else if (event.getKey().equals("stopButton")) {
+        } else if (event.getKey().equals("stopFletching")) {
             if (config.stopFletching()) {
                 started = false;
                 state = null;
