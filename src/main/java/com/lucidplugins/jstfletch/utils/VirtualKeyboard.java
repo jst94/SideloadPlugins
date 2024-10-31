@@ -2,9 +2,9 @@ package com.lucidplugins.jstfletch.utils;
 
 import com.example.Packets.MousePackets;
 import com.example.Packets.WidgetPackets;
+import net.runelite.api.Client;
 import net.runelite.api.widgets.Widget;
 import net.runelite.client.RuneLite;
-import net.runelite.api.Client;
 
 public class VirtualKeyboard {
     private static final Client client = RuneLite.getInjector().getInstance(Client.class);

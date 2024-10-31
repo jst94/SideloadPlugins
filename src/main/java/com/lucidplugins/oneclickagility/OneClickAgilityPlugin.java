@@ -1,7 +1,6 @@
 package com.lucidplugins.oneclickagility;
 
 import com.example.EthanApiPlugin.Collections.ETileItem;
-import com.example.EthanApiPlugin.EthanApiPlugin;
 import com.example.PacketUtils.WidgetInfoExtended;
 import com.example.Packets.MovementPackets;
 import com.google.inject.Provides;
@@ -9,37 +8,26 @@ import com.lucidplugins.api.utils.InteractionUtils;
 import com.lucidplugins.api.utils.InventoryUtils;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.*;
-
-import static net.runelite.api.ItemID.*;
 import net.runelite.api.coords.LocalPoint;
 import net.runelite.api.coords.WorldPoint;
-import net.runelite.api.events.ClientTick;
-import net.runelite.api.events.DecorativeObjectDespawned;
-import net.runelite.api.events.DecorativeObjectSpawned;
-import net.runelite.api.events.GameObjectDespawned;
-import net.runelite.api.events.GameObjectSpawned;
-import net.runelite.api.events.GraphicChanged;
-import net.runelite.api.events.GroundObjectDespawned;
-import net.runelite.api.events.GroundObjectSpawned;
-import net.runelite.api.events.ItemDespawned;
-import net.runelite.api.events.ItemSpawned;
-import net.runelite.api.events.MenuOptionClicked;
-import net.runelite.api.events.WallObjectDespawned;
-import net.runelite.api.events.WallObjectSpawned;
+import net.runelite.api.events.*;
 import net.runelite.api.widgets.Widget;
 import net.runelite.api.widgets.WidgetInfo;
+import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
-import net.runelite.client.config.ConfigManager;
 import net.runelite.client.util.GameEventManager;
 import org.pf4j.Extension;
+
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.util.*;
+
+import static net.runelite.api.ItemID.*;
 
 @Extension
 @PluginDescriptor(

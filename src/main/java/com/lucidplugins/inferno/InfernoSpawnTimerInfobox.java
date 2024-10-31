@@ -24,13 +24,14 @@
  */
 package com.lucidplugins.inferno;
 
-import java.awt.Color;
-import java.awt.image.BufferedImage;
-import java.time.Instant;
 import lombok.AccessLevel;
 import lombok.Getter;
 import net.runelite.client.ui.overlay.infobox.InfoBox;
 import net.runelite.client.ui.overlay.infobox.InfoBoxPriority;
+
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.time.Instant;
 
 class InfernoSpawnTimerInfobox extends InfoBox
 {

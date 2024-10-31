@@ -1,16 +1,8 @@
 package com.lucidplugins.lucidgauntlet;
 
-import net.runelite.api.Client;
-import net.runelite.api.Constants;
-import net.runelite.api.GameObject;
-import net.runelite.api.Scene;
-import net.runelite.api.Tile;
+import net.runelite.api.*;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class GameObjectQuery {

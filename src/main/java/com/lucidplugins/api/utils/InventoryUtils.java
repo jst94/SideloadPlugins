@@ -3,7 +3,6 @@ package com.lucidplugins.api.utils;
 
 import com.example.EthanApiPlugin.Collections.Inventory;
 import com.example.InteractionApi.InventoryInteraction;
-import com.example.Packets.MousePackets;
 import com.example.Packets.WidgetPackets;
 import com.lucidplugins.api.item.SlottedItem;
 import net.runelite.api.Client;

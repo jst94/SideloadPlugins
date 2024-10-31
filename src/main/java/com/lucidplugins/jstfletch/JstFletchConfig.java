@@ -60,7 +60,7 @@ public interface JstFletchConfig extends Config {
         keyName = "startFletching",
         name = "Start Fletching",
         description = "Enable to start the automated fletching",
-        position = 98
+        position = 5
     )
     default boolean startFletching() {
         return false;
@@ -70,9 +70,39 @@ public interface JstFletchConfig extends Config {
         keyName = "stopFletching",
         name = "Stop Fletching",
         description = "Enable to stop the automated fletching",
-        position = 99
+        position = 6
     )
     default boolean stopFletching() {
         return false;
+    }
+
+    @ConfigItem(
+        keyName = "fletchType",
+        name = "Fletch Type",
+        description = "Type of item to fletch (e.g., bolts, arrows)",
+        position = 7
+    )
+    default String getFletchType() {
+        return "Arrows";
+    }
+
+    @ConfigItem(
+        keyName = "progressiveLevels",
+        name = "Progressive Levels",
+        description = "Enable progressive fletching based on player level",
+        position = 8
+    )
+    default boolean isProgressiveLevels() {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "maxLevel",
+        name = "Max Fletching Level",
+        description = "Maximum fletching level to automate up to",
+        position = 9
+    )
+    default int getMaxLevel() {
+        return 99;
     }
 }

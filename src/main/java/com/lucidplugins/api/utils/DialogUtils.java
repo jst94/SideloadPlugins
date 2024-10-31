@@ -5,7 +5,7 @@ import net.runelite.api.Client;
 import net.runelite.api.widgets.Widget;
 import net.runelite.client.RuneLite;
 
-import java.util.*;
+import java.util.ArrayList;
 import java.util.List;
 
 public class DialogUtils

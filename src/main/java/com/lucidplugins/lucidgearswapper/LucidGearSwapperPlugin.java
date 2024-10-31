@@ -7,7 +7,9 @@ import com.google.gson.GsonBuilder;
 import com.google.inject.Provides;
 import com.lucidplugins.api.item.SlottedItem;
 import com.lucidplugins.api.utils.*;
-import net.runelite.api.*;
+import net.runelite.api.Client;
+import net.runelite.api.EquipmentInventorySlot;
+import net.runelite.api.GameState;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.widgets.Widget;
 import net.runelite.api.widgets.WidgetInfo;
@@ -23,6 +25,7 @@ import net.runelite.client.ui.overlay.OverlayManager;
 import org.pf4j.Extension;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import javax.inject.Inject;
 import java.awt.*;
 import java.awt.event.KeyEvent;
@@ -30,8 +33,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static net.runelite.client.RuneLite.RUNELITE_DIR;

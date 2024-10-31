@@ -26,16 +26,7 @@ package com.lucidplugins.inferno;
 
 import com.example.EthanApiPlugin.EthanApiPlugin;
 import com.google.inject.Provides;
-
-import java.awt.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import javax.inject.Inject;
-
 import com.lucidplugins.api.Weapon;
-import com.lucidplugins.api.WeaponType;
 import com.lucidplugins.api.utils.CombatUtils;
 import com.lucidplugins.api.utils.EquipmentUtils;
 import com.lucidplugins.api.utils.MessageUtils;
@@ -49,12 +40,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.*;
 import net.runelite.api.coords.WorldPoint;
-import net.runelite.api.events.AnimationChanged;
-import net.runelite.api.events.ChatMessage;
-import net.runelite.api.events.GameStateChanged;
-import net.runelite.api.events.GameTick;
-import net.runelite.api.events.NpcDespawned;
-import net.runelite.api.events.NpcSpawned;
+import net.runelite.api.events.*;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
@@ -66,6 +52,13 @@ import net.runelite.client.ui.overlay.OverlayManager;
 import net.runelite.client.ui.overlay.infobox.InfoBoxManager;
 import org.apache.commons.lang3.ArrayUtils;
 import org.pf4j.Extension;
+
+import javax.inject.Inject;
+import java.awt.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Extension
 @PluginDescriptor(

@@ -1,6 +1,5 @@
 package com.lucidplugins.lucidhotkeys;
 
-import com.example.EthanApiPlugin.EthanApiPlugin;
 import lombok.Getter;
 import net.runelite.api.Client;
 import net.runelite.api.coords.LocalPoint;

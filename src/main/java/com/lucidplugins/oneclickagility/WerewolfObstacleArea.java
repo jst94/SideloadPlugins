@@ -1,11 +1,7 @@
 package com.lucidplugins.oneclickagility;
 
 import com.example.EthanApiPlugin.Collections.NPCs;
-import net.runelite.api.Client;
-import net.runelite.api.ItemID;
-import net.runelite.api.MenuAction;
-import net.runelite.api.MenuEntry;
-import net.runelite.api.NPC;
+import net.runelite.api.*;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.widgets.Widget;
 import net.runelite.api.widgets.WidgetInfo;

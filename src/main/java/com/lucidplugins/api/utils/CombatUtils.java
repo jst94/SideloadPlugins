@@ -1,7 +1,6 @@
 package com.lucidplugins.api.utils;
 
 import com.example.InteractionApi.PrayerInteraction;
-import com.example.Packets.MousePackets;
 import com.example.Packets.WidgetPackets;
 import net.runelite.api.*;
 import net.runelite.api.widgets.WidgetInfo;

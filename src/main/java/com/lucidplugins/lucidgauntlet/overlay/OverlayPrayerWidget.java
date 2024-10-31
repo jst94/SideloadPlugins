@@ -5,6 +5,7 @@ import com.lucidplugins.lucidgauntlet.LucidGauntletPlugin;
 import com.lucidplugins.lucidgauntlet.entity.Hunllef;
 import net.runelite.api.Client;
 import net.runelite.api.NPC;
+import net.runelite.api.Point;
 import net.runelite.api.Prayer;
 import net.runelite.client.ui.overlay.OverlayLayer;
 import net.runelite.client.ui.overlay.OverlayPosition;
@@ -12,9 +13,6 @@ import net.runelite.client.ui.overlay.OverlayPriority;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-
-import net.runelite.api.Point;
-
 import java.awt.*;
 
 @Singleton

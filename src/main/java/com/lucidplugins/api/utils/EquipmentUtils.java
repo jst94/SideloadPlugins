@@ -1,6 +1,5 @@
 package com.lucidplugins.api.utils;
 
-import com.example.Packets.MousePackets;
 import com.example.Packets.WidgetPackets;
 import com.lucidplugins.api.item.SlottedItem;
 import net.runelite.api.Client;
@@ -9,9 +8,9 @@ import net.runelite.api.widgets.Widget;
 import net.runelite.client.RuneLite;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
-import java.util.List;
 import java.util.stream.Collectors;
 
 public class EquipmentUtils

@@ -27,14 +27,14 @@
 package com.lucidplugins.inferno;
 
 import com.google.common.collect.ImmutableMap;
-import java.awt.Color;
-import java.util.Map;
-
 import com.lucidplugins.inferno.displaymodes.InfernoNamingDisplayMode;
 import lombok.AccessLevel;
 import lombok.Getter;
 import net.runelite.client.ui.overlay.components.PanelComponent;
 import net.runelite.client.ui.overlay.components.TitleComponent;
+
+import java.awt.*;
+import java.util.Map;
 
 class InfernoWaveMappings
 {

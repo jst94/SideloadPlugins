@@ -2,7 +2,10 @@ package com.lucidplugins.lucidwhispererhelper;
 
 import com.google.inject.Provides;
 import com.lucidplugins.api.item.SlottedItem;
-import com.lucidplugins.api.utils.*;
+import com.lucidplugins.api.utils.CombatUtils;
+import com.lucidplugins.api.utils.InteractionUtils;
+import com.lucidplugins.api.utils.InventoryUtils;
+import com.lucidplugins.api.utils.NpcUtils;
 import com.lucidplugins.lucidwhispererhelper.overlay.WhispererHelperOverlay;
 import lombok.Getter;
 import net.runelite.api.*;

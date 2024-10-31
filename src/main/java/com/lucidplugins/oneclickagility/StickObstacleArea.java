@@ -1,12 +1,6 @@
 package com.lucidplugins.oneclickagility;
 
-import net.runelite.api.Client;
-import net.runelite.api.Constants;
-import net.runelite.api.MenuAction;
-import net.runelite.api.MenuEntry;
-import net.runelite.api.Scene;
-import net.runelite.api.Tile;
-import net.runelite.api.TileItem;
+import net.runelite.api.*;
 import net.runelite.api.coords.WorldPoint;
 
 import java.util.ArrayList;

@@ -24,24 +24,24 @@
  */
 package com.lucidplugins.inferno;
 
-import java.awt.Color;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Predicate;
-
 import com.example.EthanApiPlugin.EthanApiPlugin;
-import com.lucidplugins.api.utils.MessageUtils;
 import com.lucidplugins.api.utils.Reachable;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import net.runelite.api.Point;
 import net.runelite.api.*;
 import net.runelite.api.coords.LocalPoint;
 import net.runelite.api.coords.WorldArea;
 import net.runelite.api.coords.WorldPoint;
 import org.apache.commons.lang3.ArrayUtils;
+
+import java.awt.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Predicate;
 
 import static com.lucidplugins.inferno.InfernoPlugin.*;
 

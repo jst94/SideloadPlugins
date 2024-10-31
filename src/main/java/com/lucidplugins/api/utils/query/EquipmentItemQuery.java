@@ -1,10 +1,10 @@
 package com.lucidplugins.api.utils.query;
 
+import com.lucidplugins.api.utils.EquipmentItemWidget;
 import net.runelite.api.widgets.Widget;
 import net.runelite.client.util.Text;
 import net.runelite.client.util.WildcardMatcher;
-import com.lucidplugins.api.utils.query.EquipmentItemQuery;
-import com.lucidplugins.api.utils.EquipmentItemWidget;
+
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;

@@ -2,10 +2,6 @@ package com.lucidplugins.inferno;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Graphics2D;
-
 import com.lucidplugins.inferno.displaymodes.InfernoWaveDisplayMode;
 import lombok.AccessLevel;
 import lombok.Setter;
@@ -13,6 +9,8 @@ import net.runelite.client.ui.overlay.Overlay;
 import net.runelite.client.ui.overlay.OverlayPosition;
 import net.runelite.client.ui.overlay.OverlayPriority;
 import net.runelite.client.ui.overlay.components.PanelComponent;
+
+import java.awt.*;
 
 import static com.lucidplugins.inferno.InfernoWaveMappings.addWaveComponent;
 

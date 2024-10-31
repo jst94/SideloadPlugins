@@ -2,16 +2,12 @@ package com.lucidplugins.lucidgauntlet.overlay;
 
 import com.google.common.base.Strings;
 import net.runelite.api.Client;
+import net.runelite.api.Point;
 import net.runelite.api.Prayer;
 import net.runelite.api.VarClientInt;
 import net.runelite.api.widgets.Widget;
-import net.runelite.api.Point;
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.Graphics2D;
-import java.awt.Polygon;
-import java.awt.Rectangle;
 
+import java.awt.*;
 
 import static net.runelite.client.ui.overlay.OverlayUtil.renderPolygon;
 

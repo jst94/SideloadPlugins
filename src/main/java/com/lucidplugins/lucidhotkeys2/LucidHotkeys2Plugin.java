@@ -1,8 +1,6 @@
 package com.lucidplugins.lucidhotkeys2;
 
 import com.example.EthanApiPlugin.Collections.ETileItem;
-import com.example.EthanApiPlugin.EthanApiPlugin;
-import com.example.Packets.MousePackets;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.inject.Provides;
@@ -13,8 +11,8 @@ import com.lucidplugins.api.utils.*;
 import com.lucidplugins.lucidhotkeys2.overlay.TileMarkersOverlay;
 import com.lucidplugins.lucidhotkeys2.overlay.UserVariablesPanelOverlay;
 import lombok.Getter;
-import net.runelite.api.*;
 import net.runelite.api.Deque;
+import net.runelite.api.*;
 import net.runelite.api.coords.LocalPoint;
 import net.runelite.api.coords.WorldArea;
 import net.runelite.api.coords.WorldPoint;
@@ -43,8 +41,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 

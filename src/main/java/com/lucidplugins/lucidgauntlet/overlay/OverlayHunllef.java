@@ -1,31 +1,26 @@
 package com.lucidplugins.lucidgauntlet.overlay;
-import java.awt.image.BufferedImage;
-import java.util.ArrayList;
-import java.util.List;
-import javax.inject.Inject;
-import javax.inject.Singleton;
 
 import com.lucidplugins.lucidgauntlet.LucidGauntletConfig;
 import com.lucidplugins.lucidgauntlet.LucidGauntletPlugin;
-import net.runelite.api.Client;
-import net.runelite.api.Model;
-import net.runelite.api.NPC;
-import net.runelite.api.NPCComposition;
-import net.runelite.api.Perspective;
-import net.runelite.api.Point;
-import net.runelite.api.Projectile;
-import net.runelite.api.coords.LocalPoint;
-import net.runelite.api.model.Jarvis;
 import com.lucidplugins.lucidgauntlet.Vertex;
 import com.lucidplugins.lucidgauntlet.entity.Hunllef;
 import com.lucidplugins.lucidgauntlet.entity.Missile;
 import com.lucidplugins.lucidgauntlet.entity.Tornado;
+import net.runelite.api.Point;
+import net.runelite.api.*;
+import net.runelite.api.coords.LocalPoint;
+import net.runelite.api.model.Jarvis;
 import net.runelite.client.ui.overlay.OverlayLayer;
 import net.runelite.client.ui.overlay.OverlayPosition;
 import net.runelite.client.ui.overlay.OverlayPriority;
 import net.runelite.client.ui.overlay.outline.ModelOutlineRenderer;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.List;
 
 @Singleton
 public class OverlayHunllef extends Overlay

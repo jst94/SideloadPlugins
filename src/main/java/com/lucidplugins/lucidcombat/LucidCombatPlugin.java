@@ -1,8 +1,6 @@
 package com.lucidplugins.lucidcombat;
 
 import com.example.EthanApiPlugin.Collections.ETileItem;
-import com.example.EthanApiPlugin.EthanApiPlugin;
-import com.example.Packets.MousePackets;
 import com.google.inject.Provides;
 import com.lucidplugins.api.item.SlottedItem;
 import com.lucidplugins.api.spells.Runes;
@@ -12,7 +10,10 @@ import lombok.Getter;
 import net.runelite.api.*;
 import net.runelite.api.coords.LocalPoint;
 import net.runelite.api.coords.WorldPoint;
-import net.runelite.api.events.*;
+import net.runelite.api.events.ChatMessage;
+import net.runelite.api.events.GameTick;
+import net.runelite.api.events.MenuOpened;
+import net.runelite.api.events.MenuOptionClicked;
 import net.runelite.api.widgets.Widget;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
@@ -29,8 +30,8 @@ import org.pf4j.Extension;
 import javax.inject.Inject;
 import java.awt.*;
 import java.awt.event.KeyEvent;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 

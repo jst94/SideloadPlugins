@@ -1,13 +1,13 @@
 package com.lucidplugins.jstfletch;
 
+import com.example.EthanApiPlugin.Collections.Inventory;
 import com.example.EthanApiPlugin.Collections.TileObjects;
-import com.example.InteractionApi.TileObjectInteraction;
 import com.example.EthanApiPlugin.Collections.Widgets;
+import com.example.EthanApiPlugin.EthanApiPlugin;
+import com.example.InteractionApi.TileObjectInteraction;
+import com.example.PacketUtils.WidgetInfoExtended;
 import com.example.Packets.MousePackets;
 import com.example.Packets.WidgetPackets;
-import com.example.EthanApiPlugin.EthanApiPlugin;
-import com.example.PacketUtils.WidgetInfoExtended;
-import com.example.EthanApiPlugin.Collections.Inventory;
 import net.runelite.api.TileObject;
 import net.runelite.api.widgets.Widget;
 import net.runelite.api.widgets.WidgetInfo;

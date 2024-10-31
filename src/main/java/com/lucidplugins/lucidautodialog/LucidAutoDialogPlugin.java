@@ -1,7 +1,10 @@
 package com.lucidplugins.lucidautodialog;
 
 import com.google.inject.Provides;
-import com.lucidplugins.api.utils.*;
+import com.lucidplugins.api.utils.DialogOption;
+import com.lucidplugins.api.utils.DialogUtils;
+import com.lucidplugins.api.utils.InventoryUtils;
+import com.lucidplugins.api.utils.NpcUtils;
 import net.runelite.api.Client;
 import net.runelite.api.NPC;
 import net.runelite.api.events.GameTick;
@@ -9,6 +12,7 @@ import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
+
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.awt.*;

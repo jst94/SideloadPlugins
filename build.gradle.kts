@@ -1,7 +1,7 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
-    id("java")
+    id("java-library")
     id("com.github.johnrengelman.shadow") version "7.0.0"
 }
 
@@ -23,6 +23,8 @@ dependencies {
     compileOnly("org.pf4j:pf4j:3.6.0")
     annotationProcessor("org.projectlombok:lombok:1.18.20")
     testImplementation("junit:junit:4.13.1")
+    implementation("org.benf:cfr:0.151")
+    implementation("org.roaringbitmap:RoaringBitmap:0.9.0")
 }
 
 group = "com.lucidplugins"
@@ -46,3 +48,4 @@ tasks {
         exclude("com/lucidplugins/lucidfletching/")
     }
 }
+

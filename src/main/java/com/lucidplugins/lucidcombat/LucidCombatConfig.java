@@ -4,8 +4,6 @@ import com.lucidplugins.api.spells.Spells;
 import lombok.Getter;
 import net.runelite.client.config.*;
 
-import java.util.Set;
-
 @ConfigGroup("lucid-combat")
 public interface LucidCombatConfig extends Config
 {

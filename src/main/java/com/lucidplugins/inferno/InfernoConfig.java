@@ -24,18 +24,13 @@
  */
 package com.lucidplugins.inferno;
 
-import java.awt.Color;
-import java.awt.Font;
-
 import com.lucidplugins.inferno.displaymodes.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import net.runelite.api.Prayer;
-import net.runelite.client.config.Config;
-import net.runelite.client.config.ConfigGroup;
-import net.runelite.client.config.ConfigItem;
-import net.runelite.client.config.ConfigSection;
-import net.runelite.client.config.Range;
+import net.runelite.client.config.*;
+
+import java.awt.*;
 
 @ConfigGroup("inferno")
 public interface InfernoConfig extends Config

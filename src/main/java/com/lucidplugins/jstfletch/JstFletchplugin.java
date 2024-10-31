@@ -1,5 +1,10 @@
 package com.lucidplugins.jstfletch;
 
+import com.example.EthanApiPlugin.Collections.Inventory;
+import com.example.Packets.MousePackets;
+import com.example.Packets.WidgetPackets;
+import com.google.inject.Provides;
+import com.lucidplugins.api.utils.BankUtils;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
 import net.runelite.api.ItemID;
@@ -7,18 +12,11 @@ import net.runelite.api.Skill;
 import net.runelite.api.events.GameTick;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
+import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
-import net.runelite.client.events.ConfigChanged;
-import javax.inject.Inject;
-import com.example.EthanApiPlugin.*;
 
-import com.example.EthanApiPlugin.EthanApiPlugin;
-import com.example.EthanApiPlugin.Collections.Inventory;
-import com.example.Packets.MousePackets;
-import com.example.Packets.WidgetPackets;
-import com.google.inject.Provides;
-import com.lucidplugins.api.utils.BankUtils;
+import javax.inject.Inject;
 
 @PluginDescriptor(
         name = "JSTFLETCHER",
