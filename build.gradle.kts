@@ -14,13 +14,14 @@ repositories {
     mavenCentral()
 }
 
-val runeLiteVersion = "latest.release"
+val runeLiteVersion = "1.10.44-SNAPSHOT"
 
 dependencies {
     compileOnly(group = "com.example", name = "example", version = "5.4")
     compileOnly("org.projectlombok:lombok:1.18.20")
     compileOnly("net.runelite:client:$runeLiteVersion")
     compileOnly("org.pf4j:pf4j:3.6.0")
+    
     annotationProcessor("org.projectlombok:lombok:1.18.20")
     testImplementation("junit:junit:4.13.1")
     implementation("org.benf:cfr:0.151")
@@ -40,7 +41,13 @@ tasks {
     }
     withType<Jar> {
         manifest {
-
+            attributes(mapOf(
+                "Plugin-Version" to project.version,
+                "Plugin-Id" to project.name.toLowerCase(),
+                "Plugin-Provider" to project.group,
+                "Plugin-Description" to "LucidPlugins Collection",
+                "Plugin-License" to "3-Clause BSD License"
+            ))
         }
     }
     withType<ShadowJar> {
@@ -48,4 +55,3 @@ tasks {
         exclude("com/lucidplugins/lucidfletching/")
     }
 }
-
