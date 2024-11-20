@@ -14,7 +14,7 @@ repositories {
     mavenCentral()
 }
 
-val runeLiteVersion = "1.10.44-SNAPSHOT"
+val runeLiteVersion = "latest.release"
 
 dependencies {
     compileOnly(group = "com.example", name = "example", version = "5.4")
