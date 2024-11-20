@@ -22,7 +22,7 @@ public class DialogOption {
         return text;
     }
 
-    public int getColor() {
+    public int getTextColor() {
         return color;
     }
 }

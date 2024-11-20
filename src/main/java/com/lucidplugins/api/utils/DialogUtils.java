@@ -1,5 +1,6 @@
 package com.lucidplugins.api.utils;
 
+import com.example.Packets.MousePackets;
 import com.example.Packets.WidgetPackets;
 import net.runelite.api.Client;
 import net.runelite.api.widgets.Widget;
@@ -12,6 +13,8 @@ public class DialogUtils {
     static Client client = RuneLite.getInjector().getInstance(Client.class);
     private static List<Integer> continueParentIds = List.of(193, 229, 229, 231, 217, 11);
     private static List<Integer> continueChildIds = List.of(   0,   0,   2,   5,   5,  4);
+    private static final int DIALOG_OPTION_PARENT = 219;
+    private static final int DIALOG_OPTION_CHILD = 1;
 
     public static void queueResumePauseDialog(int widgetId, int childId) {
         WidgetPackets.queueResumePause(widgetId, childId);
@@ -19,7 +22,7 @@ public class DialogUtils {
 
     public static List<DialogOption> getOptions() {
         List<DialogOption> out = new ArrayList<>();
-        Widget widget = client.getWidget(219, 1);
+        Widget widget = client.getWidget(DIALOG_OPTION_PARENT, DIALOG_OPTION_CHILD);
         if (widget == null || widget.isSelfHidden()) {
             return out;
         }
@@ -52,9 +55,31 @@ public class DialogUtils {
         for (int i = 0; i < continueParentIds.size(); i++) {
             Widget widget = client.getWidget(continueParentIds.get(i), continueChildIds.get(i));
             if (widget != null && !widget.isHidden()) {
-                queueResumePauseDialog(continueParentIds.get(i), continueChildIds.get(i));
-                break;
+                MousePackets.queueClickPacket();
+                WidgetPackets.queueResumePause(continueParentIds.get(i), continueChildIds.get(i));
+                return;
             }
+        }
+    }
+
+    public static void selectOptionIndex(int index) {
+        Widget widget = client.getWidget(DIALOG_OPTION_PARENT, DIALOG_OPTION_CHILD);
+        if (widget == null || widget.isSelfHidden()) {
+            return;
+        }
+
+        Widget[] children = widget.getChildren();
+        if (children == null || index >= children.length || children[index] == null) {
+            return;
+        }
+
+        MousePackets.queueClickPacket();
+        WidgetPackets.queueWidgetAction(children[index], "Continue");
+    }
+
+    public static void sendContinueDialog() {
+        if (canContinue()) {
+            handleContinue();
         }
     }
 
@@ -65,29 +90,5 @@ public class DialogUtils {
             }
         }
         return -1;
-    }
-}
-
-class DialogOption {
-    private final int index;
-    private final String text;
-    private final int color;
-
-    public DialogOption(int index, String text, int color) {
-        this.index = index;
-        this.text = text;
-        this.color = color;
-    }
-
-    public int getIndex() {
-        return index;
-    }
-
-    public String getOptionText() {
-        return text;
-    }
-
-    public int getColor() {
-        return color;
     }
 }

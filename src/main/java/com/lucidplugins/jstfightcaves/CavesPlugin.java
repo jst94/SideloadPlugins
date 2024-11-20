@@ -375,31 +375,25 @@ public class CavesPlugin extends Plugin {
         Player player = client.getLocalPlayer();
         if (player == null) return;
 
-        // Get nearest enemy and count nearby enemies
         NPC nearestEnemy = NPCs.search()
             .filter(npc -> npc.getHealthRatio() > 0 && 
                     !npc.getName().equals("TzTok-Jad"))
             .nearestToPlayer().orElse(null);
-            
-        int nearbyEnemyCount = (int) NPCs.search()
-            .filter(npc -> npc.getHealthRatio() > 0 && 
-                    npc.getWorldLocation().distanceTo(player.getWorldLocation()) <= 5)
-            .result().size();
 
         // Create new state
         State newState = new State(
             player,
             nearestEnemy,
             isUnderAttack(),
-            nearbyEnemyCount,
-            isInSafeSpot(player.getWorldLocation()),
-            isMoving()
+            player.getHealthRatio(),
+            player.getInteracting() != null,
+            isInSafeSpot(player.getWorldLocation())
         );
 
         // If we have a previous state, calculate reward and update Q-table
         if (currentState != null && lastAction != null) {
-            double reward = calculateReward(currentState, newState, lastAction);
-            updateQValues(currentState, lastAction, newState, reward);
+            double reward = calculateReward(currentState, lastAction);
+            updateQValue(getStateKey(currentState), lastAction, reward, newState);
         }
 
         // Choose and execute next action
@@ -409,6 +403,16 @@ public class CavesPlugin extends Plugin {
         // Update state
         currentState = newState;
         lastAction = action;
+    }
+
+    private String getStateKey(State state) {
+        return String.format("%d_%d_%b_%b_%b",
+            state.getPlayerHealth(),
+            state.getPrayerPoints(),
+            state.isInCombat(),
+            state.isUnderAttack(),
+            state.isInSafeSpot()
+        );
     }
 
     private void executeAction(Action action, NPC nearestEnemy) {
@@ -422,15 +426,11 @@ public class CavesPlugin extends Plugin {
                 break;
             case MOVE_TO_SAFESPOT:
                 if (nearestEnemy != null) {
-                    WorldPoint safeSpot = findSafeSpot(client.getLocalPlayer().getWorldLocation(), 
-                        nearestEnemy.getWorldLocation());
+                    WorldPoint safeSpot = findSafeSpot(client.getLocalPlayer().getWorldLocation(), nearestEnemy.getWorldLocation());
                     if (safeSpot != null) {
                         handleMovement(safeSpot);
                     }
                 }
-                break;
-            case HEAL:
-                handleAutoEat();
                 break;
             case PRAYER_FLICK:
                 handlePrayer();
@@ -465,8 +465,8 @@ public class CavesPlugin extends Plugin {
         double currentQ = getQValue(stateKey, action);
 
         // Find max Q value for next state
-        double maxNextQ = Arrays.stream(Action.getAllActions())
-            .mapToDouble(a -> getQValue(nextState.getKey(), a))
+        double maxNextQ = Action.getAllActions().stream()
+            .mapToDouble(a -> getQValue(getStateKey(nextState), a))
             .max()
             .orElse(0.0);
 
@@ -483,12 +483,11 @@ public class CavesPlugin extends Plugin {
 
         if (random.nextDouble() < epsilon) {
             // Explore: choose random action
-            Action[] actions = Action.getAllActions();
-            return actions[random.nextInt(actions.length)];
+            return Action.getAllActions().get(random.nextInt(Action.getAllActions().size()));
         } else {
             // Exploit: choose best action
-            return Arrays.stream(Action.getAllActions())
-                .max(Comparator.comparingDouble(a -> getQValue(state.getKey(), a)))
+            return Action.getAllActions().stream()
+                .max(Comparator.comparingDouble(a -> getQValue(getStateKey(state), a)))
                 .orElse(Action.WAIT);
         }
     }
@@ -500,7 +499,7 @@ public class CavesPlugin extends Plugin {
         if (state.isUnderAttack() && action == Action.MOVE_TO_SAFESPOT) {
             reward += 1;
         }
-        if (state.getPlayerHealth() < 50 && action == Action.HEAL) {
+        if (state.getPlayerHealth() < 50 && action == Action.PRAYER_FLICK) {
             reward += 2;
         }
         if (state.isInSafeSpot() && action == Action.ATTACK_NEAREST) {
@@ -508,7 +507,7 @@ public class CavesPlugin extends Plugin {
         }
 
         // Penalties
-        if (state.getPlayerHealth() < 30 && action != Action.HEAL) {
+        if (state.getPlayerHealth() < 30 && action != Action.MOVE_TO_SAFESPOT) {
             reward -= 1;
         }
         if (state.isUnderAttack() && !state.isInSafeSpot() && action != Action.MOVE_TO_SAFESPOT) {
@@ -696,9 +695,16 @@ public class CavesPlugin extends Plugin {
     }
 
     private void resumePause() {
-        Widget widget = client.getWidget(15138821);
-        if (widget != null) {
-            handleWidgetInteraction(widget, "Resume");
+        Optional<Widget> dialogWidget = Widgets.search()
+                .withTextContains("You're on your own now")
+                .hiddenState(false)
+                .first();
+
+        if (dialogWidget.isPresent()) {
+            Widget widget = dialogWidget.get();
+            if (widget != null && widget.getActions() != null && Arrays.asList(widget.getActions()).contains("Continue")) {
+                handleWidgetInteraction(widget, "Continue");
+            }
         }
     }
 
@@ -1082,7 +1088,31 @@ public class CavesPlugin extends Plugin {
     }
 
     public boolean fightStarted() {
-        return this.client.getTopLevelWorldView().getScene().isInstance();
+        if (client.getLocalPlayer() == null) {
+            return false;
+        }
+
+        // Check if we're in the Fight Caves region
+        int regionId = client.getLocalPlayer().getWorldLocation().getRegionID();
+        if (regionId != 9551) { // Fight Caves region ID
+            return false;
+        }
+
+        // Check if we're in an instance
+        if (!client.getTopLevelWorldView().getScene().isInstance()) {
+            return false;
+        }
+
+        // Check for any Fight Caves NPCs
+        boolean hasNpcs = !NPCs.search()
+            .filter(npc -> npc.getName() != null && (
+                npc.getName().contains("Tz-") ||
+                npc.getName().contains("Tok-") ||
+                npc.getName().contains("Yt-")
+            ))
+            .result().isEmpty();
+
+        return hasNpcs;
     }
 
     public boolean canUseSpecialAttack() {
@@ -1141,7 +1171,7 @@ public class CavesPlugin extends Plugin {
 
         Widget specOrb = client.getWidget(593, 37);
         if (specOrb != null && !isMoving()) {
-            handleWidgetInteraction(specOrb, "Use <col=ff981f>Special Attack</col>");
+            WidgetPackets.queueWidgetAction(specOrb, "Use <col=ff981f>Special Attack</col>");
         }
     }
 
@@ -1245,7 +1275,7 @@ public class CavesPlugin extends Plugin {
             }
             
             if (runOrb.isPresent() && client.getVarpValue(173) == 0) {
-                WidgetInteraction.interact(runOrb.get(), "Toggle Run");
+                WidgetPackets.queueWidgetAction(runOrb.get(), "Toggle Run");
             }
         }
     }

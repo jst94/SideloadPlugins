@@ -24,9 +24,9 @@
  */
 package com.lucidplugins.inferno.displaymodes;
 
-import lombok.RequiredArgsConstructor;
+import lombok.Getter;
 
-@RequiredArgsConstructor
+@Getter
 public enum InfernoWaveDisplayMode
 {
 	CURRENT("Current wave"),
@@ -35,6 +35,11 @@ public enum InfernoWaveDisplayMode
 	NONE("None");
 
 	private final String name;
+
+	InfernoWaveDisplayMode(String name)
+	{
+		this.name = name;
+	}
 
 	@Override
 	public String toString()

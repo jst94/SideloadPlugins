@@ -1,19 +1,17 @@
 package com.lucidplugins.jstfightcaves.QLearning;
 
+import java.util.Arrays;
+import java.util.List;
+
 public enum Action {
-    ATTACK_NEAREST,      // Attack the nearest enemy
-    MOVE_TO_SAFESPOT,   // Move to a safe spot
-    HEAL,               // Eat food or drink potions
-    PRAYER_FLICK,       // Change prayers
-    KITE,              // Kite an enemy
-    STEP_UNDER,        // Step under an enemy
-    WAIT;              // Do nothing this tick
+    ATTACK_NEAREST,
+    MOVE_TO_SAFESPOT,
+    PRAYER_FLICK,
+    KITE,
+    STEP_UNDER,
+    WAIT;
 
-    public static Action[] getAllActions() {
-        return Action.values();
-    }
-
-    public String getKey() {
-        return this.name();
+    public static List<Action> getAllActions() {
+        return Arrays.asList(Action.values());
     }
 }

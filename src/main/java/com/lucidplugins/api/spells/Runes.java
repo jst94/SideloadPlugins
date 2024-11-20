@@ -6,63 +6,58 @@ package com.lucidplugins.api.spells;
  */
 
 import com.google.common.collect.ImmutableMap;
-import lombok.Getter;
+import net.runelite.api.ItemID;
 
 import java.util.Map;
 
-import static net.runelite.api.ItemID.*;
-
 public enum Runes {
-    AIR(1, AIR_RUNE),
-    WATER(2, WATER_RUNE),
-    EARTH(3, EARTH_RUNE),
-    FIRE(4, FIRE_RUNE),
-    MIND(5, MIND_RUNE),
-    CHAOS(6, CHAOS_RUNE),
-    DEATH(7, DEATH_RUNE),
-    BLOOD(8, BLOOD_RUNE),
-    COSMIC(9, COSMIC_RUNE),
-    NATURE(10, NATURE_RUNE),
-    LAW(11, LAW_RUNE),
-    BODY(12, BODY_RUNE),
-    SOUL(13, SOUL_RUNE),
-    ASTRAL(14, ASTRAL_RUNE),
-    MIST(15, MIST_RUNE),
-    MUD(16, MUD_RUNE),
-    DUST(17, DUST_RUNE),
-    LAVA(18, LAVA_RUNE),
-    STEAM(19, STEAM_RUNE),
-    SMOKE(20, SMOKE_RUNE),
-    WRATH(21, WRATH_RUNE);
+    AIR(ItemID.AIR_RUNE, 1),
+    MIND(ItemID.MIND_RUNE, 2),
+    WATER(ItemID.WATER_RUNE, 3),
+    EARTH(ItemID.EARTH_RUNE, 4),
+    FIRE(ItemID.FIRE_RUNE, 5),
+    BODY(ItemID.BODY_RUNE, 6),
+    COSMIC(ItemID.COSMIC_RUNE, 7),
+    CHAOS(ItemID.CHAOS_RUNE, 8),
+    NATURE(ItemID.NATURE_RUNE, 9),
+    LAW(ItemID.LAW_RUNE, 10),
+    DEATH(ItemID.DEATH_RUNE, 11),
+    ASTRAL(ItemID.ASTRAL_RUNE, 12),
+    BLOOD(ItemID.BLOOD_RUNE, 13),
+    SOUL(ItemID.SOUL_RUNE, 14),
+    WRATH(ItemID.WRATH_RUNE, 15);
 
-    private static final Map<Integer, Integer> runes;
+    private final int itemId;
+    private final int runeId;
+
+    private static final Map<Integer, Integer> RUNE_IDS;
 
     static {
-        ImmutableMap.Builder<Integer, Integer> builder = new ImmutableMap.Builder<>();
+        ImmutableMap.Builder<Integer, Integer> builder = ImmutableMap.builder();
         for (Runes rune : values()) {
-            builder.put(rune.getItemId(), rune.getId());
+            builder.put(rune.itemId, rune.runeId);
         }
-        runes = builder.build();
+        RUNE_IDS = builder.build();
     }
 
-    @Getter
-    private final int id;
-    @Getter
-    private final int itemId;
-
-
-    Runes(final int id, final int itemId) {
-        this.id = id;
+    Runes(int itemId, int runeId) {
         this.itemId = itemId;
+        this.runeId = runeId;
+    }
+
+    public int getItemId() {
+        return itemId;
+    }
+
+    public int getRuneId() {
+        return runeId;
+    }
+
+    public static Map<Integer, Integer> getRuneIds() {
+        return RUNE_IDS;
     }
 
     public static int getVarbitIndexForItemId(int itemId) {
-        return runes.get(itemId);
-    }
-
-    public String getName() {
-        String name = this.name();
-        name = name.charAt(0) + name.substring(1).toLowerCase();
-        return name;
+        return RUNE_IDS.getOrDefault(itemId, -1);
     }
 }

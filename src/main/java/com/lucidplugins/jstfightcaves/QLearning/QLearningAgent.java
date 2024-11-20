@@ -3,6 +3,7 @@ package com.lucidplugins.jstfightcaves.QLearning;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+import net.runelite.api.coords.WorldPoint;
 
 public class QLearningAgent {
     private final Map<String, Map<String, Double>> qTable;
@@ -30,9 +31,9 @@ public class QLearningAgent {
     }
 
     public void update(State state, Action action, State nextState, double reward) {
-        String stateKey = state.getKey();
-        String actionKey = action.getKey();
-        String nextStateKey = nextState.getKey();
+        String stateKey = getStateKey(state);
+        String actionKey = action.name();
+        String nextStateKey = getStateKey(nextState);
 
         // Initialize Q-values if not exist
         qTable.putIfAbsent(stateKey, new HashMap<>());
@@ -52,17 +53,17 @@ public class QLearningAgent {
     }
 
     private Action getBestAction(State state) {
-        String stateKey = state.getKey();
+        String stateKey = getStateKey(state);
         qTable.putIfAbsent(stateKey, new HashMap<>());
         Map<String, Double> actionValues = qTable.get(stateKey);
 
         // Initialize with first action if no values exist
         Action bestAction = Action.values()[0];
-        double bestValue = actionValues.getOrDefault(bestAction.getKey(), 0.0);
+        double bestValue = actionValues.getOrDefault(bestAction.name(), 0.0);
 
         // Find action with highest Q-value
         for (Action action : Action.values()) {
-            double value = actionValues.getOrDefault(action.getKey(), 0.0);
+            double value = actionValues.getOrDefault(action.name(), 0.0);
             if (value > bestValue) {
                 bestValue = value;
                 bestAction = action;
@@ -73,7 +74,7 @@ public class QLearningAgent {
     }
 
     private double getMaxQValue(State state) {
-        String stateKey = state.getKey();
+        String stateKey = getStateKey(state);
         if (!qTable.containsKey(stateKey)) {
             return 0.0;
         }
@@ -87,6 +88,23 @@ public class QLearningAgent {
                 .mapToDouble(v -> v)
                 .max()
                 .orElse(0.0);
+    }
+
+    private String getStateKey(State state) {
+        return String.format("%d_%d_%b_%b_%b",
+            state.getPlayerHealth(),
+            state.getPrayerPoints(),
+            state.isInCombat(),
+            state.isUnderAttack(),
+            state.isInSafeSpot()
+        );
+    }
+
+    private double getDistanceToNearestEnemy(State state) {
+        if (state.getNearestNPC() == null || state.getLocation() == null) {
+            return Double.MAX_VALUE;
+        }
+        return state.getLocation().distanceTo(state.getNearestNPC().getWorldLocation());
     }
 
     // Calculate reward based on state transition
@@ -104,7 +122,7 @@ public class QLearningAgent {
         // Action-specific rewards
         switch (action) {
             case ATTACK_NEAREST:
-                if (newState.getDistanceToNearestEnemy() <= 1) {
+                if (getDistanceToNearestEnemy(newState) <= 1) {
                     reward += 5.0; // Reward for successful attack position
                 }
                 break;
@@ -113,24 +131,20 @@ public class QLearningAgent {
                     reward += 10.0; // Reward for reaching safe spot
                 }
                 break;
-            case HEAL:
-                if (newState.getPlayerHealth() > oldState.getPlayerHealth()) {
-                    reward += 8.0; // Reward for successful healing
-                }
-                break;
             case PRAYER_FLICK:
                 if (!newState.isUnderAttack() && oldState.isUnderAttack()) {
                     reward += 15.0; // Big reward for successful prayer flick
                 }
                 break;
             case KITE:
-                if (newState.getDistanceToNearestEnemy() > oldState.getDistanceToNearestEnemy() 
-                    && !newState.isUnderAttack()) {
+                double oldDistance = getDistanceToNearestEnemy(oldState);
+                double newDistance = getDistanceToNearestEnemy(newState);
+                if (newDistance > oldDistance && !newState.isUnderAttack()) {
                     reward += 12.0; // Reward for successful kiting
                 }
                 break;
             case STEP_UNDER:
-                if (newState.getDistanceToNearestEnemy() == 0 && !newState.isUnderAttack()) {
+                if (getDistanceToNearestEnemy(newState) == 0 && !newState.isUnderAttack()) {
                     reward += 10.0; // Reward for successful stepping under
                 }
                 break;
@@ -140,8 +154,8 @@ public class QLearningAgent {
         }
 
         // Additional situational rewards
-        if (newState.getNearbyEnemyCount() > 2 && newState.isInSafeSpot()) {
-            reward += 5.0; // Reward for handling multiple enemies safely
+        if (!newState.isUnderAttack() && newState.isInSafeSpot()) {
+            reward += 5.0; // Reward for handling enemies safely
         }
 
         return reward;

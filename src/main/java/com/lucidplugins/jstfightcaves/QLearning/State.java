@@ -1,47 +1,63 @@
 package com.lucidplugins.jstfightcaves.QLearning;
 
+import lombok.Getter;
+import net.runelite.api.Client;
 import net.runelite.api.NPC;
 import net.runelite.api.Player;
+import net.runelite.api.Skill;
 import net.runelite.api.coords.WorldPoint;
+import net.runelite.client.RuneLite;
+import java.util.Objects;
 
+@Getter
 public class State {
-    private final int playerHealth;
+    private final int health;
     private final int prayerPoints;
-    private final boolean isUnderAttack;
-    private final int nearbyEnemyCount;
-    private final double distanceToNearestEnemy;
-    private final boolean isInSafeSpot;
-    private final boolean isMoving;
+    private final WorldPoint location;
+    private final boolean underAttack;
+    private final boolean inCombat;
+    private final boolean inSafeSpot;
+    private final NPC nearestNPC;
+    private static final Client client = RuneLite.getInjector().getInstance(Client.class);
 
-    public State(Player player, NPC nearestEnemy, boolean underAttack, int enemyCount, boolean inSafeSpot, boolean moving) {
-        this.playerHealth = player != null ? player.getHealthRatio() : 0;
-        this.prayerPoints = player != null ? player.getPrayerPoints() : 0;
-        this.isUnderAttack = underAttack;
-        this.nearbyEnemyCount = enemyCount;
-        this.distanceToNearestEnemy = nearestEnemy != null ? 
-            player.getWorldLocation().distanceTo(nearestEnemy.getWorldLocation()) : 999;
-        this.isInSafeSpot = inSafeSpot;
-        this.isMoving = moving;
+    public State(Player player, NPC nearestNPC, boolean underAttack, int health, boolean inCombat, boolean inSafeSpot) {
+        this.health = health;
+        this.prayerPoints = client != null ? client.getBoostedSkillLevel(Skill.PRAYER) : 0;
+        this.inCombat = inCombat;
+        this.location = player != null ? player.getWorldLocation() : null;
+        this.underAttack = underAttack;
+        this.inSafeSpot = inSafeSpot;
+        this.nearestNPC = nearestNPC;
     }
 
-    public String getKey() {
-        // Discretize continuous values into buckets for Q-table lookup
-        int healthBucket = playerHealth / 20; // 0-5 buckets
-        int prayerBucket = prayerPoints / 20; // 0-5 buckets
-        int distanceBucket = (int) Math.min(distanceToNearestEnemy / 2, 5); // 0-5 buckets
-        int enemyBucket = Math.min(nearbyEnemyCount, 3); // 0-3 buckets
-
-        return String.format("%d_%d_%b_%d_%d_%b_%b",
-            healthBucket, prayerBucket, isUnderAttack, enemyBucket,
-            distanceBucket, isInSafeSpot, isMoving);
+    public int getPlayerHealth() {
+        return health;
     }
 
-    // Getters
-    public int getPlayerHealth() { return playerHealth; }
-    public int getPrayerPoints() { return prayerPoints; }
-    public boolean isUnderAttack() { return isUnderAttack; }
-    public int getNearbyEnemyCount() { return nearbyEnemyCount; }
-    public double getDistanceToNearestEnemy() { return distanceToNearestEnemy; }
-    public boolean isInSafeSpot() { return isInSafeSpot; }
-    public boolean isMoving() { return isMoving; }
+    public boolean isUnderAttack() {
+        return underAttack;
+    }
+
+    public boolean isInSafeSpot() {
+        return inSafeSpot;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        State state = (State) o;
+        return health == state.health &&
+                prayerPoints == state.prayerPoints &&
+                inCombat == state.inCombat &&
+                underAttack == state.underAttack &&
+                inSafeSpot == state.inSafeSpot &&
+                Objects.equals(location, state.location) &&
+                Objects.equals(nearestNPC, state.nearestNPC);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(health, prayerPoints, inCombat, location, underAttack, inSafeSpot, nearestNPC);
+    }
 }
