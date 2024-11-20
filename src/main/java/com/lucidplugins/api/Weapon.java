@@ -1,14 +1,11 @@
 package com.lucidplugins.api;
 
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import net.runelite.api.ItemID;
-
 import java.util.Arrays;
 import java.util.List;
 
 @Getter
-@RequiredArgsConstructor
 public enum Weapon
 {
     NOTHING(List.of(-1), WeaponType.OTHER),
@@ -465,15 +462,28 @@ public enum Weapon
     GHRAZI_RAPIER(List.of(
             ItemID.GHRAZI_RAPIER,
             ItemID.GHRAZI_RAPIER_23628
-    ), WeaponType.MELEE),
+    ), WeaponType.MELEE);
 
-    ;
-    final List<Integer> ids;
-    final WeaponType weaponType;
+    private final List<Integer> itemIds;
+    private final WeaponType weaponType;
 
-    public static Weapon getWeaponForId(int id)
-    {
-        return Arrays.stream(Weapon.values()).filter(wep -> wep.getIds().stream().anyMatch(i -> i == id)).findFirst().orElse(NOTHING);
+    Weapon(List<Integer> itemIds, WeaponType weaponType) {
+        this.itemIds = itemIds;
+        this.weaponType = weaponType;
+    }
+
+    public List<Integer> getItemIds() {
+        return itemIds;
+    }
+
+    public WeaponType getWeaponType() {
+        return weaponType;
+    }
+
+    public static Weapon getWeaponForId(int id) {
+        return Arrays.stream(values())
+                .filter(w -> w.getItemIds().contains(id))
+                .findFirst()
+                .orElse(NOTHING);
     }
 }
-

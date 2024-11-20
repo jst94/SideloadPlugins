@@ -3,17 +3,31 @@ package com.lucidplugins.api.item;
 import lombok.Getter;
 import net.runelite.api.Item;
 
-public class SlottedItem
-{
-    @Getter
-    private int slot = -1;
+@Getter
+public class SlottedItem {
+    private final int id;
+    private final int quantity;
+    private final int slot;
 
-    @Getter
-    private Item item;
-
-    public SlottedItem(int id, int quantity, int slot)
-    {
-        this.item = new Item(id, quantity);
+    public SlottedItem(int id, int quantity, int slot) {
+        this.id = id;
+        this.quantity = quantity;
         this.slot = slot;
+    }
+
+    public static SlottedItem fromItem(Item item, int slot) {
+        return new SlottedItem(item.getId(), item.getQuantity(), slot);
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public int getQuantity() {
+        return quantity;
+    }
+
+    public int getSlot() {
+        return slot;
     }
 }

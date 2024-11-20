@@ -1,7 +1,11 @@
 package com.lucidplugins.inferno;
 
-import com.example.PacketUtils.WidgetInfoExtended;
+import com.example.EthanApiPlugin.EthanApiPlugin;
+import com.example.InteractionApi.PrayerInteraction;
+import com.example.Packets.MousePackets;
+import com.example.Packets.WidgetPackets;
 import com.google.common.base.Strings;
+import com.lucidplugins.api.utils.GameObjectUtils;
 import com.lucidplugins.inferno.displaymodes.InfernoPrayerDisplayMode;
 import com.lucidplugins.inferno.displaymodes.InfernoSafespotDisplayMode;
 import net.runelite.api.Point;
@@ -10,7 +14,6 @@ import net.runelite.api.coords.LocalPoint;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.widgets.Widget;
 import net.runelite.client.ui.overlay.*;
-
 import javax.inject.Inject;
 import java.awt.*;
 import java.util.ArrayList;
@@ -35,15 +38,15 @@ public class InfernoOverlay extends Overlay
 		this.config = config;
 		setPosition(OverlayPosition.DYNAMIC);
 		setLayer(OverlayLayer.ABOVE_WIDGETS);
-		setPriority(OverlayPriority.HIGHEST);
+		setPriority(net.runelite.client.ui.overlay.OverlayPriority.HIGH);
 	}
 
 	@Override
 	public Dimension render(Graphics2D graphics)
 	{
-		final Widget meleePrayerWidget = client.getWidget(WidgetInfoExtended.PRAYER_PROTECT_FROM_MELEE.getPackedId());
-		final Widget rangePrayerWidget = client.getWidget(WidgetInfoExtended.PRAYER_PROTECT_FROM_MISSILES.getPackedId());
-		final Widget magicPrayerWidget = client.getWidget(WidgetInfoExtended.PRAYER_PROTECT_FROM_MAGIC.getPackedId());
+		final Widget meleePrayerWidget = getWidget(Prayer.PROTECT_FROM_MELEE);
+		final Widget rangePrayerWidget = getWidget(Prayer.PROTECT_FROM_MISSILES);
+		final Widget magicPrayerWidget = getWidget(Prayer.PROTECT_FROM_MAGIC);
 
 		if (config.indicateObstacles())
 		{
@@ -59,7 +62,7 @@ public class InfernoOverlay extends Overlay
 			renderIndividualTilesSafespots(graphics);
 		}
 
-		if (config.indicateBlobDeathLocation())
+		if (config != null && config.indicateBlobDeathLocation() && plugin != null && plugin.getBlobDeathSpots() != null && !plugin.getBlobDeathSpots().isEmpty())
 		{
 			renderBlobDeathPoly(graphics);
 		}
@@ -155,7 +158,7 @@ public class InfernoOverlay extends Overlay
 	{
 		for (WorldPoint worldPoint : plugin.getObstacles())
 		{
-			final LocalPoint localPoint = LocalPoint.fromWorld(client.getTopLevelWorldView(), worldPoint);
+			final LocalPoint localPoint = LocalPoint.fromWorld(client, worldPoint);
 
 			if (localPoint == null)
 			{
@@ -175,249 +178,177 @@ public class InfernoOverlay extends Overlay
 
 	private void renderAreaSafepots(Graphics2D graphics)
 	{
-		for (int safeSpotId : plugin.getSafeSpotAreas().keySet())
-		{
-			if (safeSpotId > 6)
-			{
-				continue;
-			}
-
-			Color colorEdge1;
-			Color colorEdge2 = null;
-			Color colorFill;
-
-			switch (safeSpotId)
-			{
-				case 0:
-					colorEdge1 = Color.WHITE;
-					colorFill = Color.WHITE;
-					break;
-				case 1:
-					colorEdge1 = Color.RED;
-					colorFill = Color.RED;
-					break;
-				case 2:
-					colorEdge1 = Color.GREEN;
-					colorFill = Color.GREEN;
-					break;
-				case 3:
-					colorEdge1 = Color.BLUE;
-					colorFill = Color.BLUE;
-					break;
-				case 4:
-					colorEdge1 = Color.RED;
-					colorEdge2 = Color.GREEN;
-					colorFill = Color.YELLOW;
-					break;
-				case 5:
-					colorEdge1 = Color.RED;
-					colorEdge2 = Color.BLUE;
-					colorFill = new Color(255, 0, 255);
-					break;
-				case 6:
-					colorEdge1 = Color.GREEN;
-					colorEdge2 = Color.BLUE;
-					colorFill = new Color(0, 255, 255);
-					break;
-				default:
-					continue;
-			}
-
-			//Add all edges, calculate average edgeSize and indicate tiles
-			final List<int[][]> allEdges = new ArrayList<>();
-			int edgeSizeSquared = 0;
-
-			for (WorldPoint worldPoint : plugin.getSafeSpotAreas().get(safeSpotId))
-			{
-				final LocalPoint localPoint = LocalPoint.fromWorld(client.getTopLevelWorldView(), worldPoint);
-
-				if (localPoint == null)
-				{
-					continue;
-				}
-
-				final Polygon tilePoly = Perspective.getCanvasTilePoly(client, localPoint);
-
-				if (tilePoly == null)
-				{
-					continue;
-				}
-
-				renderAreaTilePolygon(graphics, tilePoly, colorFill);
-
-				final int[][] edge1 = new int[][]{{tilePoly.xpoints[0], tilePoly.ypoints[0]}, {tilePoly.xpoints[1], tilePoly.ypoints[1]}};
-				edgeSizeSquared += Math.pow(tilePoly.xpoints[0] - tilePoly.xpoints[1], 2) + Math.pow(tilePoly.ypoints[0] - tilePoly.ypoints[1], 2);
-				allEdges.add(edge1);
-				final int[][] edge2 = new int[][]{{tilePoly.xpoints[1], tilePoly.ypoints[1]}, {tilePoly.xpoints[2], tilePoly.ypoints[2]}};
-				edgeSizeSquared += Math.pow(tilePoly.xpoints[1] - tilePoly.xpoints[2], 2) + Math.pow(tilePoly.ypoints[1] - tilePoly.ypoints[2], 2);
-				allEdges.add(edge2);
-				final int[][] edge3 = new int[][]{{tilePoly.xpoints[2], tilePoly.ypoints[2]}, {tilePoly.xpoints[3], tilePoly.ypoints[3]}};
-				edgeSizeSquared += Math.pow(tilePoly.xpoints[2] - tilePoly.xpoints[3], 2) + Math.pow(tilePoly.ypoints[2] - tilePoly.ypoints[3], 2);
-				allEdges.add(edge3);
-				final int[][] edge4 = new int[][]{{tilePoly.xpoints[3], tilePoly.ypoints[3]}, {tilePoly.xpoints[0], tilePoly.ypoints[0]}};
-				edgeSizeSquared += Math.pow(tilePoly.xpoints[3] - tilePoly.xpoints[0], 2) + Math.pow(tilePoly.ypoints[3] - tilePoly.ypoints[0], 2);
-				allEdges.add(edge4);
-			}
-
-			if (allEdges.size() <= 0)
-			{
-				continue;
-			}
-
-			edgeSizeSquared /= allEdges.size();
-
-			//Find and indicate unique edges
-			final int toleranceSquared = (int) Math.ceil(edgeSizeSquared / 6);
-
-			for (int i = 0; i < allEdges.size(); i++)
-			{
-				int[][] baseEdge = allEdges.get(i);
-
-				boolean duplicate = false;
-
-				for (int j = 0; j < allEdges.size(); j++)
-				{
-					if (i == j)
-					{
-						continue;
-					}
-
-					int[][] checkEdge = allEdges.get(j);
-
-					if (edgeEqualsEdge(baseEdge, checkEdge, toleranceSquared))
-					{
-						duplicate = true;
-						break;
-					}
-				}
-
-				if (!duplicate)
-				{
-					renderFullLine(graphics, baseEdge, colorEdge1);
-
-					if (colorEdge2 != null)
-					{
-						renderDashedLine(graphics, baseEdge, colorEdge2);
-					}
-				}
-			}
-
-		}
-	}
-
-	private void renderDigTimer(Graphics2D g, InfernoNPC npc)
-	{
-		String tickString = Integer.toString(npc.getIdleTicks());
-		g.setFont(new Font("Arial", plugin.getFontStyle().getFont(), config.getMeleeDigFontSize()));
-		Point canvasLocation = npc.getNpc().getCanvasTextLocation(g, tickString, 0);
-
-		if (canvasLocation == null)
+		if (plugin == null || client == null)
 		{
 			return;
 		}
 
-		// NEEDS TO BE WORKED ON WITH SOME STATS
-		// MELEE DIG IS UNKNOWN AT THIS TIME
-		// COLLECTING DATA
-		Color digColor;
-		if (npc.getIdleTicks() < config.digTimerDangerThreshold())
-		{
-			digColor = config.getMeleeDigSafeColor();
-		}
-		else
-		{
-			digColor = config.getMeleeDigDangerColor();
-		}
+		plugin.getSafeSpotAreas().forEach((safeSpotId, safeSpots) -> {
+			if (safeSpots == null)
+			{
+				return;
+			}
 
-		renderTextLocation(g, tickString, config.getMeleeDigFontSize(), plugin.getFontStyle().getFont(), digColor, canvasLocation, false, 0);
+			safeSpots.forEach(safeSpot -> {
+				if (safeSpot == null)
+				{
+					return;
+				}
+
+				LocalPoint localPoint = LocalPoint.fromWorld(client, safeSpot);
+				if (localPoint == null)
+				{
+					return;
+				}
+
+				Polygon poly = Perspective.getCanvasTileAreaPoly(client, localPoint, 3);
+				if (poly != null)
+				{
+					renderAreaTilePolygon(graphics, poly, getSafespotColor(safeSpotId));
+				}
+			});
+		});
 	}
 
+	private void renderDigTimer(Graphics2D g, InfernoNPC npc)
+	{
+		if (npc == null || npc.getNpc() == null || g == null || config == null || plugin == null)
+		{
+			return;
+		}
+
+		try
+		{
+			String tickString = String.valueOf(npc.getIdleTicks());
+			int fontSize = Math.max(12, config.getMeleeDigFontSize()); // Ensure minimum readable size
+			
+			// Get the NPC's position and adjust for visibility
+			Point canvasLocation = npc.getNpc().getCanvasTextLocation(g, tickString, npc.getNpc().getLogicalHeight() + 40);
+			
+			if (canvasLocation == null)
+			{
+				return;
+			}
+
+			// Determine color based on dig timer threshold
+			Color digColor = npc.getIdleTicks() < config.digTimerDangerThreshold() 
+				? config.getMeleeDigSafeColor() 
+				: config.getMeleeDigDangerColor();
+
+			// Draw with shadow for better visibility
+			renderTextLocation(
+				g,
+				tickString,
+				fontSize,
+				Font.BOLD, // Use bold for better visibility
+				digColor,
+				canvasLocation,
+				true, // Enable shadows
+				0
+			);
+		}
+		catch (Exception e)
+		{
+			// Silently handle any rendering errors
+		}
+	}
 
 	private void renderBlobDeathPoly(Graphics2D graphics)
 	{
-		graphics.setColor(config.getBlobDeathLocationColor());
+		if (graphics == null || plugin == null || client == null || 
+			!config.indicateBlobDeathLocation() || 
+			plugin.getBlobDeathSpots() == null || plugin.getBlobDeathSpots().isEmpty())
+		{
+			return;
+		}
 
 		plugin.getBlobDeathSpots().forEach(blobDeathSpot -> {
-			Polygon area = Perspective.getCanvasTileAreaPoly(client, blobDeathSpot.getLocation(), 3);
-
-
-			Color color = config.getBlobDeathLocationColor();
-			if (config.blobDeathLocationFade())
+			if (blobDeathSpot == null || blobDeathSpot.getLocation() == null)
 			{
-				color = new Color(color.getRed(), color.getGreen(), color.getBlue(), blobDeathSpot.fillAlpha());
+				return;
 			}
 
-			renderOutlinePolygon(graphics, area, color);
+			try
+			{
+				LocalPoint localPoint = LocalPoint.fromWorld(client, blobDeathSpot.getLocation());
+				if (localPoint == null)
+				{
+					return;
+				}
 
-			graphics.setFont(new Font("Arial", Font.BOLD, plugin.getTextSize()));
-			String ticks = String.valueOf(blobDeathSpot.getTicksUntilDone());
+				Polygon area = Perspective.getCanvasTileAreaPoly(client, localPoint, 3);
+				if (area != null)
+				{
+					Color color = config.getBlobDeathLocationColor();
+					if (config.blobDeathLocationFade())
+					{
+						color = new Color(
+							color.getRed(), 
+							color.getGreen(), 
+							color.getBlue(), 
+							Math.min(255, Math.max(0, blobDeathSpot.getFillAlpha()))
+						);
+					}
 
-			renderTextLocation(graphics,
-				ticks,
-				plugin.getTextSize(),
-				plugin.getFontStyle().getFont(),
-				config.getBlobDeathLocationColor(),
-				Perspective.getCanvasTextLocation(client, graphics, blobDeathSpot.getLocation(), ticks, 0),
-				false,
-				0);
+					renderOutlinePolygon(graphics, area, color);
+
+					String ticksText = String.valueOf(blobDeathSpot.getTicksUntilDone());
+					Point textLocation = Perspective.getCanvasTextLocation(
+						client, 
+						graphics, 
+						localPoint, 
+						ticksText, 
+						0
+					);
+
+					if (textLocation != null)
+					{
+						graphics.setFont(new Font("Arial", Font.BOLD, plugin.getTextSize()));
+						renderTextLocation(
+							graphics,
+							ticksText,
+							plugin.getTextSize(),
+							Font.BOLD,
+							color,
+							textLocation,
+							true,
+							0
+						);
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				// Ignore any rendering errors
+			}
 		});
 	}
 
 	private void renderIndividualTilesSafespots(Graphics2D graphics)
 	{
-		for (WorldPoint worldPoint : plugin.getSafeSpotMap().keySet())
+		if (plugin == null || client == null)
 		{
-			final int safeSpotId = plugin.getSafeSpotMap().get(worldPoint);
+			return;
+		}
 
-			if (safeSpotId > 6)
+		plugin.getSafeSpotMap().forEach((worldPoint, safeSpotId) -> {
+			if (worldPoint == null)
 			{
-				continue;
+				return;
 			}
 
-			final LocalPoint localPoint = LocalPoint.fromWorld(client.getTopLevelWorldView(), worldPoint);
-
+			LocalPoint localPoint = LocalPoint.fromWorld(client, worldPoint);
 			if (localPoint == null)
 			{
-				continue;
+				return;
 			}
 
-			final Polygon tilePoly = Perspective.getCanvasTilePoly(client, localPoint);
-
-			if (tilePoly == null)
+			Polygon poly = Perspective.getCanvasTileAreaPoly(client, localPoint, 3);
+			if (poly != null)
 			{
-				continue;
+				renderAreaTilePolygon(graphics, poly, getSafespotColor(safeSpotId));
 			}
-
-			Color color;
-			switch (safeSpotId)
-			{
-				case 0:
-					color = Color.WHITE;
-					break;
-				case 1:
-					color = Color.RED;
-					break;
-				case 2:
-					color = Color.GREEN;
-					break;
-				case 3:
-					color = Color.BLUE;
-					break;
-				case 4:
-					color = new Color(255, 255, 0);
-					break;
-				case 5:
-					color = new Color(255, 0, 255);
-					break;
-				case 6:
-					color = new Color(0, 255, 255);
-					break;
-				default:
-					continue;
-			}
-
-			OverlayUtil.renderPolygon(graphics, tilePoly, color);
-		}
+		});
 	}
 
 	private void renderTicksOnNpc(Graphics2D graphics, InfernoNPC infernoNPC, NPC renderOnNPC)
@@ -436,7 +367,7 @@ public class InfernoOverlay extends Overlay
 
 	private void renderNpcLocation(Graphics2D graphics, InfernoNPC infernoNPC)
 	{
-		final LocalPoint localPoint = LocalPoint.fromWorld(client.getTopLevelWorldView(), infernoNPC.getNpc().getWorldLocation());
+		final LocalPoint localPoint = LocalPoint.fromWorld(client, infernoNPC.getNpc().getWorldLocation());
 
 		if (localPoint != null)
 		{
@@ -451,18 +382,24 @@ public class InfernoOverlay extends Overlay
 
 	private Widget getWidget(Prayer prayer)
 	{
+		if (client == null)
+		{
+			return null;
+		}
+
+		int widgetId;
 		switch (prayer)
 		{
 			case PROTECT_FROM_MELEE:
-				return client.getWidget(WidgetInfoExtended.PRAYER_PROTECT_FROM_MELEE.getPackedId());
+				return client.getWidget(541, 17);
 			case PROTECT_FROM_MISSILES:
-				return client.getWidget(WidgetInfoExtended.PRAYER_PROTECT_FROM_MISSILES.getPackedId());
+				return client.getWidget(541, 18);
 			case PROTECT_FROM_MAGIC:
-				return client.getWidget(WidgetInfoExtended.PRAYER_PROTECT_FROM_MAGIC.getPackedId());
+				return client.getWidget(541, 19);
+			default:
+				return null;
 		}
-		return null;
 	}
-
 
 	private void renderDescendingBoxes(Graphics2D graphics)
 	{
@@ -511,10 +448,10 @@ public class InfernoOverlay extends Overlay
 
 	private void renderPrayerIconOverlay(Graphics2D graphics)
 	{
-		if (plugin.getClosestAttack() != null)
+		if (plugin.getClosestAttack() != null && client != null)
 		{
-			// Prayer indicator in prayer tab
 			InfernoNPC.Attack prayerForAttack = null;
+			
 			if (client.isPrayerActive(Prayer.PROTECT_FROM_MAGIC))
 			{
 				prayerForAttack = InfernoNPC.Attack.MAGIC;
@@ -531,22 +468,20 @@ public class InfernoOverlay extends Overlay
 			if (plugin.getClosestAttack() != prayerForAttack || config.indicateWhenPrayingCorrectly())
 			{
 				final Widget prayerWidget = getWidget(plugin.getClosestAttack().getPrayer());
-				final Rectangle prayerRectangle = new Rectangle((int) prayerWidget.getBounds().getWidth(),
-					(int) prayerWidget.getBounds().getHeight());
-				prayerRectangle.translate((int) prayerWidget.getBounds().getX(), (int) prayerWidget.getBounds().getY());
-
-				//TODO: Config values for these colors
-				Color prayerColor;
-				if (plugin.getClosestAttack() == prayerForAttack)
+				if (prayerWidget != null)
 				{
-					prayerColor = Color.GREEN;
-				}
-				else
-				{
-					prayerColor = Color.RED;
-				}
+					final Rectangle prayerRectangle = new Rectangle(
+						(int) prayerWidget.getBounds().getWidth(),
+						(int) prayerWidget.getBounds().getHeight()
+					);
+					prayerRectangle.translate(
+						(int) prayerWidget.getBounds().getX(),
+						(int) prayerWidget.getBounds().getY()
+					);
 
-				renderOutlinePolygon(graphics, prayerRectangle, prayerColor);
+					Color prayerColor = plugin.getClosestAttack() == prayerForAttack ? Color.GREEN : Color.RED;
+					renderOutlinePolygon(graphics, prayerRectangle, prayerColor);
+				}
 			}
 		}
 	}
@@ -564,11 +499,27 @@ public class InfernoOverlay extends Overlay
 		return distanceSquared <= toleranceSquared;
 	}
 
-	public static void renderAreaTilePolygon(Graphics2D graphics, Shape poly, Color color)
-	{
-		graphics.setColor(new Color(color.getRed(), color.getGreen(), color.getBlue(), 10));
-		graphics.fill(poly);
-	}
+	private Color getSafespotColor(Integer safeSpotId) {
+        switch (safeSpotId) {
+            case 1:
+                return Color.GREEN;  // Safe
+            case 2:
+                return Color.YELLOW; // Temporary safe
+            case 3:
+                return Color.RED;    // Not safe
+            default:
+                return Color.WHITE;  // Unknown
+        }
+    }
+
+    private void renderAreaTilePolygon(Graphics2D graphics, Shape poly, Color color) {
+        if (poly != null) {
+            graphics.setColor(new Color(color.getRed(), color.getGreen(), color.getBlue(), 100));
+            graphics.fill(poly);
+            graphics.setColor(color);
+            graphics.draw(poly);
+        }
+    }
 
 	public static void renderFullLine(Graphics2D graphics, int[][] line, Color color)
 	{

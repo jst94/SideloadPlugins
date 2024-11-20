@@ -24,109 +24,72 @@
  */
 package com.lucidplugins.inferno;
 
-import lombok.AccessLevel;
-import lombok.Getter;
+import java.awt.Color;
+import java.awt.image.BufferedImage;
+import java.time.Instant;
+import net.runelite.client.plugins.Plugin;
+import com.lucidplugins.inferno.InfernoPlugin;
 import net.runelite.client.ui.overlay.infobox.InfoBox;
 import net.runelite.client.ui.overlay.infobox.InfoBoxPriority;
 
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.time.Instant;
+class InfernoSpawnTimerInfobox
+extends InfoBox {
+    private static final long SPAWN_DURATION = 210L;
+    private static final long SPAWN_DURATION_INCREMENT = 105L;
+    private static final long SPAWN_DURATION_WARNING = 120L;
+    private static final long SPAWN_DURATION_DANGER = 30L;
+    private long timeRemaining;
+    private long startTime;
+    private boolean running;
 
-class InfernoSpawnTimerInfobox extends InfoBox
-{
-	private static final long SPAWN_DURATION = 210; // 3 minutes 30 seconds
-	private static final long SPAWN_DURATION_INCREMENT = 105; // 1 minute 45 seconds
-	private static final long SPAWN_DURATION_WARNING = 120; // 2 minutes before next respawn
-	private static final long SPAWN_DURATION_DANGER = 30; // 30 seconds before next respawn
+    InfernoSpawnTimerInfobox(BufferedImage image, InfernoPlugin plugin) {
+        super(image, (Plugin)plugin);
+        this.setPriority(InfoBoxPriority.HIGH);
+        this.running = false;
+        this.timeRemaining = 210L;
+    }
 
-	private final InfernoPlugin plugin;
+    void run() {
+        this.startTime = Instant.now().getEpochSecond();
+        this.running = true;
+    }
 
-	private long timeRemaining;
-	private long startTime;
+    void reset() {
+        this.running = false;
+        this.timeRemaining = 210L;
+    }
 
-	@Getter(AccessLevel.PACKAGE)
-	private boolean running;
+    void pause() {
+        if (this.running) {
+            this.running = false;
+            long timeElapsed = Instant.now().getEpochSecond() - this.startTime;
+            this.timeRemaining = Math.max(0L, this.timeRemaining - timeElapsed);
+            this.timeRemaining += 105L;
+        }
+    }
 
-	InfernoSpawnTimerInfobox(final BufferedImage image, final InfernoPlugin plugin)
-	{
-		super(image, plugin);
-		setPriority(InfoBoxPriority.HIGH);
-		running = false;
-		timeRemaining = SPAWN_DURATION;
-		this.plugin = plugin;
+    public String getText() {
+        long seconds = this.running ? Math.max(0L, this.timeRemaining - (Instant.now().getEpochSecond() - this.startTime)) : this.timeRemaining;
+        long minutes = seconds % 3600L / 60L;
+        long secs = seconds % 60L;
+        return String.format("%02d:%02d", minutes, secs);
+    }
 
-		plugin.spawnDebug("Spawn Timer created");
-	}
+    public Color getTextColor() {
+        long seconds;
+        long l = seconds = this.running ? Math.max(0L, this.timeRemaining - (Instant.now().getEpochSecond() - this.startTime)) : this.timeRemaining;
+        return seconds <= 30L ? Color.RED : (seconds <= 120L ? Color.ORANGE : Color.GREEN);
+    }
 
-	void run()
-	{
-		startTime = Instant.now().getEpochSecond();
-		running = true;
+    public boolean render() {
+        return true;
+    }
 
-		plugin.spawnDebug("Spawn Timer created. Start time: " + startTime);
-	}
+    public boolean cull() {
+        return false;
+    }
 
-	void reset()
-	{
-		running = false;
-		timeRemaining = SPAWN_DURATION;
-
-		plugin.spawnDebug("Spawn Timer reset. Time remaining: " + timeRemaining);
-	}
-
-	void pause()
-	{
-		if (!running)
-		{
-			return;
-		}
-
-		running = false;
-
-		long timeElapsed = Instant.now().getEpochSecond() - startTime;
-
-		timeRemaining = Math.max(0, timeRemaining - timeElapsed);
-
-		timeRemaining += SPAWN_DURATION_INCREMENT;
-
-		plugin.spawnDebug("Spawn Timer paused. Time remaining: " + timeRemaining);
-	}
-
-	@Override
-	public String getText()
-	{
-		final long seconds = running
-			? Math.max(0, timeRemaining - (Instant.now().getEpochSecond() - startTime))
-			: timeRemaining;
-
-		final long minutes = seconds % 3600 / 60;
-		final long secs = seconds % 60;
-
-		return String.format("%02d:%02d", minutes, secs);
-	}
-
-	@Override
-	public Color getTextColor()
-	{
-		final long seconds = running
-			? Math.max(0, timeRemaining - (Instant.now().getEpochSecond() - startTime))
-			: timeRemaining;
-
-		return seconds <= SPAWN_DURATION_DANGER ?
-			Color.RED : seconds <= SPAWN_DURATION_WARNING ?
-			Color.ORANGE : Color.GREEN;
-	}
-
-	@Override
-	public boolean render()
-	{
-		return true;
-	}
-
-	@Override
-	public boolean cull()
-	{
-		return false;
-	}
+    boolean isRunning() {
+        return this.running;
+    }
 }

@@ -1,16 +1,28 @@
 package com.lucidplugins.api;
 
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import net.runelite.api.Prayer;
 
 @Getter
-@RequiredArgsConstructor
-public enum WeaponType
-{
-    MAGIC(Prayer.PROTECT_FROM_MAGIC, Prayer.AUGURY), MELEE(Prayer.PROTECT_FROM_MELEE, Prayer.PIETY), RANGED(Prayer.PROTECT_FROM_MISSILES, Prayer.RIGOUR), OTHER(null, null);
+public enum WeaponType {
+    MELEE(Prayer.PROTECT_FROM_MELEE, Prayer.PIETY),
+    RANGED(Prayer.PROTECT_FROM_MISSILES, Prayer.RIGOUR),
+    MAGIC(Prayer.PROTECT_FROM_MAGIC, Prayer.AUGURY),
+    OTHER(Prayer.PROTECT_FROM_MELEE, Prayer.PIETY);
 
+    private final Prayer protectionPrayer;
+    private final Prayer offensivePrayer;
 
-    final Prayer protectionPrayer;
-    final Prayer offensivePrayer;
+    WeaponType(Prayer protectionPrayer, Prayer offensivePrayer) {
+        this.protectionPrayer = protectionPrayer;
+        this.offensivePrayer = offensivePrayer;
+    }
+
+    public Prayer getProtectionPrayer() {
+        return protectionPrayer;
+    }
+
+    public Prayer getOffensivePrayer() {
+        return offensivePrayer;
+    }
 }

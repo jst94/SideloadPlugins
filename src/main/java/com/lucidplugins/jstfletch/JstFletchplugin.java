@@ -19,7 +19,7 @@ import net.runelite.client.plugins.PluginDescriptor;
 import javax.inject.Inject;
 
 @PluginDescriptor(
-        name = "JSTFLETCHER",
+        name = "<html><font color=#AE9CD8>[JST]</font> Fletcher</html>",
         description = "Automated fletching plugin",
         tags = {"fletching", "crafting", "automation"}
 )
