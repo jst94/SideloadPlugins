@@ -11,6 +11,8 @@ import java.util.stream.Collectors;
 public class CombatUtils
 {
 
+    private static final int QUICK_PRAYER_GROUP_ID = 160;
+    private static final int QUICK_PRAYER_CHILD_ID = 14;
     public static final int RIGOUR_UNLOCKED = 5451;
     public static final int AUGURY_UNLOCKED = 5452;
     public static final int CAMELOT_TRAINING_ROOM_STATUS = 3909;
@@ -161,7 +163,7 @@ public class CombatUtils
         }
 
         InteractionUtils.queueClickPacketCoordinateArea();
-        WidgetPackets.queueWidgetActionPacket(1, WidgetInfo.MINIMAP_QUICK_PRAYER_ORB.getPackedId(), -1, -1);
+        WidgetPackets.queueWidgetActionPacket(1, client.getWidget(QUICK_PRAYER_GROUP_ID, QUICK_PRAYER_CHILD_ID).getId(), -1, -1);
     }
 
     public static void activateQuickPrayers()
@@ -174,7 +176,7 @@ public class CombatUtils
         if (!isQuickPrayersEnabled())
         {
             InteractionUtils.queueClickPacketCoordinateArea();
-            WidgetPackets.queueWidgetActionPacket(1, WidgetInfo.MINIMAP_QUICK_PRAYER_ORB.getPackedId(), -1, -1);
+            WidgetPackets.queueWidgetActionPacket(1, client.getWidget(QUICK_PRAYER_GROUP_ID, QUICK_PRAYER_CHILD_ID).getId(), -1, -1);
         }
     }
 

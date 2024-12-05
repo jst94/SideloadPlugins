@@ -1,193 +1,184 @@
 package com.lucidplugins.jstfletch;
 
+import com.example.EthanApiPlugin.Collections.Bank;
 import com.example.EthanApiPlugin.Collections.Inventory;
+import com.example.EthanApiPlugin.Collections.TileItems;
+import com.example.EthanApiPlugin.EthanApiPlugin;
 import com.example.Packets.MousePackets;
 import com.example.Packets.WidgetPackets;
 import com.google.inject.Provides;
-import com.lucidplugins.api.utils.BankUtils;
-import net.runelite.api.Client;
-import net.runelite.api.GameState;
-import net.runelite.api.ItemID;
-import net.runelite.api.Skill;
+import net.runelite.api.*;
 import net.runelite.api.events.GameTick;
+import net.runelite.api.widgets.Widget;
+import net.runelite.api.widgets.WidgetInfo;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
-import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
+import org.pf4j.Extension;
 
 import javax.inject.Inject;
+import java.util.Optional;
 
+@Extension
 @PluginDescriptor(
-        name = "JSTFLETCHER",
-        description = "Automated fletching plugin",
+        name = "JST Fletcher",
+        description = "Automated fletching plugin using EthanApi",
         tags = {"fletching", "crafting", "automation"}
 )
 public class JstFletchplugin extends Plugin {
-
-    private static final String VERSION = "1.0";
-    private static final String CONFIG_GROUP = "jstfletch";
-
-    @Inject
-    private JstFletchConfig config;
+    private static final int KNIFE_ID = 946;
+    private static final int FLETCHING_WIDGET_GROUP = 270;
+    private static final int FLETCHING_WIDGET_CHILD = 14;
+    private static final int BANK_WIDGET_ID = 786433;
 
     @Inject
     private Client client;
 
-    private FletchingState state;
-    private boolean started = false;
-    private long startTime = 0L;
-    private int startExperience = 0;
-    private int startLevel = 0;
-    private int fletchingProduct = -1;
+    @Inject
+    private JstFletchConfig config;
 
-    @Override
-    protected void startUp() throws Exception {
-        state = new FletchingState();
-    }
+    private State currentState = State.IDLE;
+    private int timeout = 0;
 
-    @Override
-    protected void shutDown() throws Exception {
-        if (state != null) {
-            // Perform any necessary cleanup
-        }
-        started = false;
-        state = null; // Reset the state by setting it to null
-    }
-
-    @Subscribe
-    private void onGameTick(GameTick event) {
-        if (!started || client.getGameState() != GameState.LOGGED_IN) {
-            return;
-        }
-
-        try {
-            switch (state.getCurrentState()) {
-                case BANKING:
-                    handleBanking();
-                    break;
-                case FLETCHING:
-                    handleFletching();
-                    break;
-                case BUYING_SUPPLIES:
-                    handleBuyingSupplies();
-                    break;
-                default:
-                    break;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void handleBanking() {
-        if (!BankUtils.isOpen()) {
-            return;
-        }
-
-        if (Inventory.getEmptySlots() == 0) {
-            BankUtils.depositAll();
-            BankUtils.withdraw1(ItemID.KNIFE);
-            return;
-        }
-
-        if (Inventory.getEmptySlots() == 27) {
-            BankUtils.withdrawAll(config.getLogType());
-            if (!Inventory.search().withId(ItemID.KNIFE).first().isPresent()) {
-                BankUtils.withdraw1(ItemID.KNIFE);
-            }
-        }
-
-        calculateFletchingProduct();
-        state.setCurrentState(FletchingState.State.FLETCHING);
-    }
-
-    private void handleFletching() {
-        if (Inventory.getEmptySlots() == 28 || !Inventory.search().withId(ItemID.KNIFE).first().isPresent()) {
-            state.setCurrentState(FletchingState.State.BANKING);
-            return;
-        }
-
-        if (client.getWidget(270, 1) == null) { // Check if fletching interface is not open
-            MousePackets.queueClickPacket();
-            WidgetPackets.queueWidgetOnWidget(Inventory.search().withId(ItemID.KNIFE).first().get(), Inventory.search().withId(config.getLogType()).first().get());
-            MousePackets.queueClickPacket();
-            WidgetPackets.queueResumePause(fletchingProduct, 1);
-        }
-    }
-
-    private void handleBuyingSupplies() throws InterruptedException {
-        if (!GrandExchange.isOpen()) {
-            GrandExchange.collect();
-            return;
-        }
-
-        if (GrandExchange.needsSupplies(config.getLogType())) {
-            GrandExchange.buyItem(config.getLogType(), config.getBuyQuantity(), config.getBuyPrice());
-        }
-
-        if (GrandExchange.hasCompletedOrder()) {
-            GrandExchange.collect();
-            state.setCurrentState(FletchingState.State.BANKING);
-        }
-    }
-
-    private void calculateFletchingProduct() {
-        int fletchingLevel = client.getRealSkillLevel(Skill.FLETCHING);
-        int logType = config.getLogType();
-
-        if (fletchingLevel >= 85) {
-            fletchingProduct = 2; // Magic longbow
-        } else if (fletchingLevel >= 80) {
-            fletchingProduct = 1; // Magic shortbow
-        } else if (fletchingLevel >= 70) {
-            fletchingProduct = 2; // Yew longbow
-        } else if (fletchingLevel >= 65) {
-            fletchingProduct = 1; // Yew shortbow
-        } else if (fletchingLevel >= 55) {
-            fletchingProduct = 2; // Maple longbow
-        } else if (fletchingLevel >= 50) {
-            fletchingProduct = 1; // Maple shortbow
-        } else if (fletchingLevel >= 40) {
-            fletchingProduct = 2; // Willow longbow
-        } else if (fletchingLevel >= 35) {
-            fletchingProduct = 1; // Willow shortbow
-        } else if (fletchingLevel >= 25) {
-            fletchingProduct = 2; // Oak longbow
-        } else if (fletchingLevel >= 20) {
-            fletchingProduct = 1; // Oak shortbow
-        } else if (fletchingLevel >= 10) {
-            fletchingProduct = 2; // Longbow
-        } else {
-            fletchingProduct = 1; // Shortbow
-        }
-    }
-
-    @Subscribe
-    public void onConfigChanged(ConfigChanged event) {
-        if (!event.getGroup().equals(CONFIG_GROUP)) {
-            return;
-        }
-
-        if (event.getKey().equals("startFletching")) {
-            if (config.startFletching()) {
-                started = true;
-                startTime = System.currentTimeMillis();
-                startExperience = client.getSkillExperience(Skill.FLETCHING);
-                startLevel = client.getRealSkillLevel(Skill.FLETCHING);
-                state = new FletchingState(); // Create new state
-                state.setCurrentState(FletchingState.State.BANKING);
-            }
-        } else if (event.getKey().equals("stopFletching")) {
-            if (config.stopFletching()) {
-                started = false;
-                state = null;
-            }
-        }
+    private enum State {
+        IDLE,
+        BANKING,
+        FLETCHING,
+        BUYING_SUPPLIES
     }
 
     @Provides
     JstFletchConfig provideConfig(ConfigManager configManager) {
         return configManager.getConfig(JstFletchConfig.class);
+    }
+
+    @Override
+    protected void startUp() {
+        reset();
+    }
+
+    @Override
+    protected void shutDown() {
+        reset();
+    }
+
+    private void reset() {
+        currentState = State.IDLE;
+        timeout = 0;
+    }
+
+    @Subscribe
+    private void onGameTick(GameTick event) {
+        if (!config.started() || client.getGameState() != GameState.LOGGED_IN) {
+            return;
+        }
+
+        if (timeout > 0) {
+            timeout--;
+            return;
+        }
+
+        handleState();
+    }
+
+    private void handleState() {
+        switch (currentState) {
+            case IDLE:
+                if (shouldBank()) {
+                    currentState = State.BANKING;
+                    return;
+                }
+                if (canFletch()) {
+                    currentState = State.FLETCHING;
+                    return;
+                }
+                break;
+
+            case BANKING:
+                handleBanking();
+                break;
+
+            case FLETCHING:
+                handleFletching();
+                break;
+
+            case BUYING_SUPPLIES:
+                // TODO: Implement GE buying logic if needed
+                break;
+        }
+    }
+
+    private boolean shouldBank() {
+        return !hasRequiredItems() && !Bank.isOpen();
+    }
+
+    private boolean canFletch() {
+        return hasRequiredItems() && !Bank.isOpen();
+    }
+
+    private boolean hasRequiredItems() {
+        return Inventory.getItemAmount(KNIFE_ID) >= 1 && 
+               Inventory.getItemAmount(config.logType().getItemId()) >= 1;
+    }
+
+    private void handleBanking() {
+        if (!Bank.isOpen()) {
+            Widget bankWidget = client.getWidget(WidgetInfo.BANK_CONTAINER);
+            if (bankWidget != null) {
+                MousePackets.queueClickPacket();
+                WidgetPackets.queueWidgetActionPacket(1, BANK_WIDGET_ID, -1, 0);
+                timeout = 1;
+            }
+            return;
+        }
+
+        if (Bank.isOpen()) {
+            if (Inventory.getItemAmount(config.logType().getItemId()) > 0) {
+                MousePackets.queueClickPacket();
+                WidgetPackets.queueWidgetAction(Inventory.search().withId(config.logType().getItemId()).first().get(), "Deposit-All");
+                timeout = 1;
+                return;
+            }
+
+            if (Inventory.getItemAmount(KNIFE_ID) == 0) {
+                MousePackets.queueClickPacket();
+                WidgetPackets.queueWidgetAction(Bank.search().withId(KNIFE_ID).first().get(), "Withdraw-1");
+                timeout = 1;
+                return;
+            }
+
+            if (Bank.search().withId(config.logType().getItemId()).first().isPresent()) {
+                MousePackets.queueClickPacket();
+                WidgetPackets.queueWidgetAction(Bank.search().withId(config.logType().getItemId()).first().get(), "Withdraw-All");
+                timeout = 1;
+                currentState = State.IDLE;
+            }
+        }
+    }
+
+    private void handleFletching() {
+        // If fletching interface is open
+        if (client.getWidget(FLETCHING_WIDGET_GROUP, FLETCHING_WIDGET_CHILD) != null) {
+            MousePackets.queueClickPacket();
+            WidgetPackets.queueWidgetActionPacket(config.fletchType().getInterfaceIndex(), 17694734, -1, 0);
+            timeout = 2;
+            return;
+        }
+
+        // If we have logs, start fletching
+        if (Inventory.getItemAmount(config.logType().getItemId()) > 0) {
+            Optional<Widget> knife = Inventory.search().withId(KNIFE_ID).first();
+            Optional<Widget> logs = Inventory.search().withId(config.logType().getItemId()).first();
+            
+            if (knife.isPresent() && logs.isPresent()) {
+                MousePackets.queueClickPacket();
+                WidgetPackets.queueWidgetOnWidget(knife.get(), logs.get());
+                timeout = 2;
+                return;
+            }
+        }
+
+        currentState = State.IDLE;
     }
 }
