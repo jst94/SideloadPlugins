@@ -14,7 +14,7 @@ repositories {
     mavenCentral()
 }
 
-val runeLiteVersion = "1.10.45"
+val runeLiteVersion = "1.10.46"
 
 dependencies {
     implementation(files("lib/EthanVannPlugins-5.4.jar"))
@@ -63,7 +63,7 @@ tasks {
         doLast {
             copy {
                 from(archiveFile)
-                into("C:/Users/Jeroen/.runelite/sideloaded-plugins")
+                into("C:/Users/User/.runelite/sideloaded-plugins")
             }
         }
     }
