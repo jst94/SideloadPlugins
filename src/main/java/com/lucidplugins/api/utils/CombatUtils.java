@@ -150,9 +150,9 @@ public class CombatUtils
                     return Prayer.CHIVALRY;
                 }
                 return Prayer.PIETY;
+            default:
+                return prayer;
         }
-
-        return prayer;
     }
 
     public static void toggleQuickPrayers()

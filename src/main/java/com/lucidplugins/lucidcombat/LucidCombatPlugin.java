@@ -214,6 +214,7 @@ public class LucidCombatPlugin extends Plugin implements KeyListener
         return configManager.getConfig(LucidCombatConfig.class);
     }
 
+    @SuppressWarnings("deprecation")
     @Subscribe
     private void onMenuOpened(MenuOpened event)
     {

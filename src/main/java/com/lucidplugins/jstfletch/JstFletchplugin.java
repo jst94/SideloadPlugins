@@ -2,8 +2,7 @@ package com.lucidplugins.jstfletch;
 
 import com.example.EthanApiPlugin.Collections.Bank;
 import com.example.EthanApiPlugin.Collections.Inventory;
-import com.example.EthanApiPlugin.Collections.TileItems;
-import com.example.EthanApiPlugin.EthanApiPlugin;
+
 import com.example.Packets.MousePackets;
 import com.example.Packets.WidgetPackets;
 import com.google.inject.Provides;

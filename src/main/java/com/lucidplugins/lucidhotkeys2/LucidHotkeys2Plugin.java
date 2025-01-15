@@ -1390,7 +1390,8 @@ public class LucidHotkeys2Plugin extends Plugin implements KeyListener
         };
     }
 
-    private Predicate<SlottedItem> slottedItemFilter(Object nameOrId)
+    @SuppressWarnings("unused")
+	private Predicate<SlottedItem> slottedItemFilter(Object nameOrId)
     {
         return (item) -> {
             boolean any = nameOrId instanceof String && String.valueOf(nameOrId).equals("Any");
@@ -1432,9 +1433,23 @@ public class LucidHotkeys2Plugin extends Plugin implements KeyListener
         this.tWithinNpcDistance = tWithinNpcDistance;
     }
 
-    private WorldPoint closestTile()
-    {
-        return InteractionUtils.getClosestFiltered(tileFilter());
+    private WorldPoint closestTile() {
+        List<Tile> tiles = new ArrayList<>();
+        Scene scene = client.getScene();
+        Tile[][][] sceneTiles = scene.getTiles();
+        int plane = client.getPlane();
+        
+        for (int x = 0; x < Constants.SCENE_SIZE; x++) {
+            for (int y = 0; y < Constants.SCENE_SIZE; y++) {
+                Tile tile = sceneTiles[plane][x][y];
+                if (tile != null) {
+                    tiles.add(tile);
+                }
+            }
+        }
+
+        Tile closest = InteractionUtils.getClosestFiltered(tiles, tileFilter());
+        return closest != null ? closest.getWorldLocation() : null;
     }
 
     private Predicate<Tile> tileFilter()
@@ -1847,11 +1862,11 @@ public class LucidHotkeys2Plugin extends Plugin implements KeyListener
 
             if (isInteger(s.strip()))
             {
-                tItem = InteractionUtils.nearestTileItem(tileItemFilter(Integer.parseInt(s.strip()))).orElse(null);
+                tItem = InteractionUtils.nearestTileItem(tileItemFilter(Integer.parseInt(s.strip())));
             }
             else
             {
-                tItem = InteractionUtils.nearestTileItem(tileItemFilter(String.valueOf(s.strip()))).orElse(null);
+                tItem = InteractionUtils.nearestTileItem(tileItemFilter(String.valueOf(s.strip())));
             }
 
             if (tItem != null)

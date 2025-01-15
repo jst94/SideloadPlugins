@@ -3,7 +3,6 @@ package com.lucidplugins.api.utils;
 import com.example.EthanApiPlugin.Collections.ETileItem;
 import com.example.EthanApiPlugin.Collections.Inventory;
 import com.example.EthanApiPlugin.Collections.TileItems;
-import com.example.EthanApiPlugin.EthanApiPlugin;
 import com.example.Packets.*;
 import net.runelite.api.*;
 import net.runelite.api.coords.LocalPoint;
@@ -15,695 +14,427 @@ import net.runelite.client.RuneLite;
 import javax.swing.*;
 import java.util.*;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 public class InteractionUtils
 {
     static Client client = RuneLite.getInjector().getInstance(Client.class);
-    private static int lastLoadedBaseX = -1;
-    private static int lastLoadedBaseY = -1;
-    private static int lastLoadedPlane = -1;
-    private static List<WorldPoint> checkedTiles = new ArrayList<>();
+    private static final int INVENTORY_GROUP_ID = 149;
 
-    public static boolean isRunEnabled()
-    {
+    // Coordinate area enum
+    public enum CoordinateArea {
+        INVENTORY,
+        CHAT,
+        MAIN_MODAL
+    }
+
+    // Packet interactions
+    public static void queueClickPacketCoordinateArea() {
+        MousePackets.queueClickPacket();
+    }
+
+    public static void queueClickPacketCoordinateArea(CoordinateArea area) {
+        MousePackets.queueClickPacket();
+    }
+
+    // Movement
+    public static void walk(WorldPoint point) {
+        if (point != null) {
+            MovementPackets.queueMovement(point);
+        }
+    }
+
+    public static boolean isMoving() {
+        return client.getLocalPlayer().getAnimation() != -1 || 
+               client.getLocalPlayer().getPoseAnimation() != client.getLocalPlayer().getIdlePoseAnimation();
+    }
+
+    public static int getRunEnergy() {
+        return client.getEnergy();
+    }
+
+    public static boolean isRunEnabled() {
         return client.getVarpValue(173) == 1;
     }
 
-    public static void toggleRun()
-    {
-        InteractionUtils.queueClickPacketCoordinateArea();
-        WidgetPackets.queueWidgetActionPacket(1, 10485787, -1, -1);
+    // Distance calculations
+    public static float distanceTo2DHypotenuse(WorldPoint point1, WorldPoint point2) {
+        return (float) Math.hypot(point1.getX() - point2.getX(), point1.getY() - point2.getY());
     }
 
-    public static int getRunEnergy()
-    {
-        return client.getEnergy() / 100;
+    public static float distanceTo2DHypotenuse(WorldPoint point1, WorldPoint point2, int size1, int size2) {
+        WorldPoint mid1 = point1.dx(size1 / 2).dy(size1 / 2);
+        WorldPoint mid2 = point2.dx(size2 / 2).dy(size2 / 2);
+        return distanceTo2DHypotenuse(mid1, mid2);
     }
 
-
-    public static boolean isWidgetHidden(int parentId, int childId, int grandchildId)
-    {
-        Widget target = client.getWidget(parentId, childId);
-        if (grandchildId != -1)
-        {
-            if (target == null || target.isHidden())
-            {
-                return true;
-            }
-
-            Widget subTarget = target.getChild(grandchildId);
-            if (subTarget != null)
-            {
-                return subTarget.isHidden();
-            }
-        }
-
-        if (target != null)
-        {
-            return target.isHidden();
-        }
-
-        return true;
+    public static float distanceTo2DHypotenuse(WorldPoint point1, WorldPoint point2, int size1, int size2, int plane) {
+        if (point1.getPlane() != plane || point2.getPlane() != plane) return Float.MAX_VALUE;
+        return distanceTo2DHypotenuse(point1, point2, size1, size2);
     }
 
-    public static int getWidgetSpriteId(int parentId, int childId)
-    {
-        return getWidgetSpriteId(parentId, childId, -1);
+    public static int approxDistanceTo(WorldPoint point1, WorldPoint point2) {
+        return (int)Math.max(Math.abs(point1.getX() - point2.getX()), Math.abs(point1.getY() - point2.getY()));
     }
 
-    public static int getWidgetSpriteId(int parentId, int childId, int grandchildId)
-    {
-        Widget target = client.getWidget(parentId, childId);
-        if (grandchildId != -1)
-        {
-            if (target == null || target.isSelfHidden())
-            {
-                return -1;
-            }
-
-            Widget subTarget = target.getChild(grandchildId);
-            if (subTarget != null)
-            {
-                return subTarget.getSpriteId();
-            }
-        }
-
-        if (target != null)
-        {
-            return target.getSpriteId();
-        }
-
-        return -1;
-    }
-
-    public static String getWidgetText(int parentId, int childId)
-    {
-        return getWidgetText(parentId, childId, -1);
-    }
-
-    public static String getWidgetText(int parentId, int childId, int grandchildId)
-    {
-        Widget target = client.getWidget(parentId, childId);
-        if (grandchildId != -1)
-        {
-            if (target == null || target.isSelfHidden())
-            {
-                return "null";
-            }
-
-            Widget subTarget = target.getChild(grandchildId);
-            if (subTarget != null)
-            {
-                return subTarget.getText() != null ? subTarget.getText() : "null";
-            }
-            else
-            {
-                return "null";
-            }
-        }
-
-        if (target != null)
-        {
-            return target.getText() != null ? target.getText() : "null";
-        }
-
-        return "null";
-    }
-
-    public static boolean isWidgetHidden(int parentId, int childId)
-    {
-        return isWidgetHidden(parentId, childId, -1);
-    }
-
-    public static void widgetInteract(int parentId, int childId, int grandchildId, String action)
-    {
-        Widget target = client.getWidget(parentId, childId);
-        if (target != null && grandchildId != -1)
-        {
-            target = target.getChild(grandchildId);
-        }
-
-        if (target != null && target.getActions() != null)
-        {
-            InteractionUtils.queueClickPacketCoordinateArea();
-            WidgetPackets.queueWidgetAction(target, action);
+    // Widget interactions
+    public static void widgetInteract(int parentId, int childId, String action) {
+        Widget widget = client.getWidget(parentId, childId);
+        if (widget != null) {
+            WidgetPackets.queueWidgetAction(widget, action);
         }
     }
 
-    public static void widgetInteract(int parentId, int childId, String action)
-    {
-        widgetInteract(parentId, childId, -1, action);
-    }
-
-    public static void queueResumePause(int parentId, int childId, int subchildId)
-    {
-        WidgetPackets.queueResumePause(parentId << 16 | childId, subchildId);
-    }
-
-    public static void useItemOnWallObject(Item item, TileObject object)
-    {
-        Optional<Widget> itemWidget = Inventory.search().withId(item.getId()).first();
-        itemWidget.ifPresent((iw) -> {
-            if (object != null)
-            {
-                InteractionUtils.queueClickPacketCoordinateArea();
-                ObjectPackets.queueWidgetOnTileObject(iw, object);
-            }
-        });
-    }
-
-    public static void useLastIdOnWallObject(int id, TileObject object)
-    {
-        List<Widget> itemWidgets = Inventory.search().withId(id).result();
-        Widget itemWidget = itemWidgets.get(itemWidgets.size() - 1);
-        if (object != null)
-        {
-            InteractionUtils.queueClickPacketCoordinateArea();
-            ObjectPackets.queueWidgetOnTileObject(itemWidget, object);
+    public static void widgetInteract(int parentId, int childId, int grandchildId, String action) {
+        Widget widget = client.getWidget(parentId, childId);
+        if (widget != null && grandchildId != -1) {
+            widget = widget.getChild(grandchildId);
+        }
+        if (widget != null) {
+            WidgetPackets.queueWidgetAction(widget, action);
         }
     }
 
-    public static void useItemOnNPC(int id, NPC npc)
-    {
-        Optional<Widget> widget = Inventory.search().filter(i -> i.getItemId() == id).first();
-
-        widget.ifPresent(value -> useWidgetOnNPC(value, npc));
-    }
-
-
-    public static void useWidgetOnNPC(Widget widget, NPC npc)
-    {
-        if (widget == null || npc == null)
-        {
-            return;
+    public static void queueResumePause(int parentId, int childId, int grandchildId) {
+        Widget widget = client.getWidget(parentId, childId);
+        if (widget != null && grandchildId != -1) {
+            widget = widget.getChild(grandchildId);
         }
-
-        InteractionUtils.queueClickPacketCoordinateArea();
-        NPCPackets.queueWidgetOnNPC(npc, widget);
-    }
-
-    public static void useWidgetOnPlayer(Widget widget, Player player)
-    {
-        if (widget == null || player == null)
-        {
-            return;
+        if (widget != null) {
+            WidgetPackets.queueResumePause(widget.getId(), widget.getIndex());
         }
-
-        InteractionUtils.queueClickPacketCoordinateArea();
-        PlayerPackets.queueWidgetOnPlayer(player, widget);
     }
 
-    public static void useWidgetOnTileObject(Widget widget, TileObject object)
-    {
-        if (widget == null || object == null)
-        {
-            return;
-        }
-
-        InteractionUtils.queueClickPacketCoordinateArea();
-        ObjectPackets.queueWidgetOnTileObject(widget, object);
-    }
-
-    public static void useWidgetOnTileItem(Widget widget, ETileItem tileItem)
-    {
-        if (widget == null || tileItem == null)
-        {
-            return;
-        }
-
-        InteractionUtils.queueClickPacketCoordinateArea();
-        TileItemPackets.queueWidgetOnTileItem(tileItem, widget, false);
-    }
-
-    public static Widget getItemWidget(Item item)
-    {
-        return Inventory.search().withId(item.getId()).first().orElse(null);
-    }
-
-    public static void useWidgetOnWidget(Widget widget, Widget widget2)
-    {
-        if (widget == null || widget2 == null)
-        {
-            return;
-        }
-
-        InteractionUtils.queueClickPacketCoordinateArea();
-        WidgetPackets.queueWidgetOnWidget(widget, widget2);
-    }
-
-    public static boolean isMoving()
-    {
-        return client.getLocalPlayer().getPoseAnimation() != client.getLocalPlayer().getIdlePoseAnimation();
-    }
-
-    public static void walk(WorldPoint point)
-    {
-        InteractionUtils.queueClickPacketCoordinateArea();
-        MovementPackets.queueMovement(point);
-    }
-
-    public static WorldPoint getClosestSafeLocation(List<LocalPoint> list)
-    {
-        List<Tile> safeTiles = getAll(tile ->
-                !list.contains(tile.getLocalLocation()) &&
-                        approxDistanceTo(tile.getWorldLocation(), client.getLocalPlayer().getWorldLocation()) < 6
-                        && isWalkable(tile.getWorldLocation())
-        );
-
-        Tile closestTile = getClosestTile(safeTiles);
-
-        if (closestTile != null)
-        {
-            return closestTile.getWorldLocation();
-        }
-
-        return null;
-    }
-
-    public static WorldPoint getClosestSafeLocationP3Enrage(List<LocalPoint> list)
-    {
-        List<Tile> safeTiles = getAll(tile ->
-                !list.contains(tile.getLocalLocation()) &&
-                        approxDistanceTo(tile.getWorldLocation(), client.getLocalPlayer().getWorldLocation()) < 6
-                        && isWalkable(tile.getWorldLocation())
-                        && within2RowsWardens(tile.getWorldLocation())
-        );
-
-        Tile closestTile = getClosestTile(safeTiles);
-
-        if (closestTile != null)
-        {
-            return closestTile.getWorldLocation();
-        }
-
-        return null;
-    }
-
-    private static boolean within2RowsWardens(WorldPoint point)
-    {
-        int x = point.getRegionX();
-        int y = point.getRegionY();
-
-        return y == 37 && x > 27 && x < 37;
-    }
-
-    public static WorldPoint getSafeLocationNorthSouth(List<LocalPoint> list)
-    {
-        final WorldPoint loc = client.getLocalPlayer().getWorldLocation();
-        final WorldPoint north = loc.dy(1);
-        final WorldPoint northPlus = loc.dy(2);
-        final WorldPoint south = loc.dy(-1);
-        final WorldPoint southPlus = loc.dy(-2);
-
-        // If last movement setup isnt available just find the first available instead
-        if (list.stream().noneMatch(point -> WorldPoint.fromLocal(client, point).equals(north)) || !EthanApiPlugin.reachableTiles().contains(north))
-        {
-            return north;
-        }
-        if (list.stream().noneMatch(point -> WorldPoint.fromLocal(client, point).equals(south)) || !EthanApiPlugin.reachableTiles().contains(south))
-        {
-            return south;
-        }
-        if (list.stream().noneMatch(point -> WorldPoint.fromLocal(client, point).equals(northPlus)) || !EthanApiPlugin.reachableTiles().contains(northPlus))
-        {
-            return northPlus;
-        }
-        if (list.stream().noneMatch(point -> WorldPoint.fromLocal(client, point).equals(southPlus)) || !EthanApiPlugin.reachableTiles().contains(southPlus))
-        {
-            return southPlus;
-        }
-        return null;
-    }
-
-    public static WorldPoint getClosestSafeLocationNotUnderNPC(List<LocalPoint> list, NPC target)
-    {
-        List<Tile> safeTiles = getAll(tile ->
-                !list.contains(tile.getLocalLocation()) &&
-                        !target.getWorldArea().contains(tile.getWorldLocation()) &&
-                        approxDistanceTo(tile.getWorldLocation(), client.getLocalPlayer().getWorldLocation()) < 6 &&
-                        isWalkable(tile.getWorldLocation()));
-
-        Tile closestTile = getClosestTile(safeTiles);
-
-        if (closestTile != null)
-        {
-            return closestTile.getWorldLocation();
-        }
-
-        return null;
-    }
-
-    public static WorldPoint getClosestSafeLocationNotInNPCMeleeDistance(List<LocalPoint> list, NPC target)
-    {
-        return getClosestSafeLocationNotInNPCMeleeDistance(list, target, 6);
-    }
-
-    public static WorldPoint getClosestSafeLocationNotInNPCMeleeDistance(List<LocalPoint> list, NPC target, int maxRange)
-    {
-        List<Tile> safeTiles = getAll(tile ->
-                !list.contains(tile.getLocalLocation()) &&
-                        !isNpcInMeleeDistanceToLocation(target, tile.getWorldLocation()) &&
-                        !target.getWorldArea().contains(tile.getWorldLocation()) &&
-                        approxDistanceTo(tile.getWorldLocation(), client.getLocalPlayer().getWorldLocation()) < maxRange &&
-                        isWalkable(tile.getWorldLocation())
-        );
-
-        Tile closestTile = getClosestTile(safeTiles);
-
-        if (closestTile != null)
-        {
-            return closestTile.getWorldLocation();
-        }
-
-        return null;
-    }
-
-    public static WorldPoint getClosestSafeLocationInNPCMeleeDistance(List<LocalPoint> list, NPC target)
-    {
-        List<Tile> safeTiles = getAll(tile ->
-                !list.contains(tile.getLocalLocation()) &&
-                        isNpcInMeleeDistanceToLocation(target, tile.getWorldLocation()) &&
-                        !target.getWorldArea().contains(tile.getWorldLocation()) &&
-                        approxDistanceTo(tile.getWorldLocation(), client.getLocalPlayer().getWorldLocation()) < 6 &&
-                        isWalkable(tile.getWorldLocation())
-        );
-
-        Tile closestTile = getClosestTile(safeTiles);
-
-        if (closestTile != null)
-        {
-            return closestTile.getWorldLocation();
-        }
-
-        return null;
-    }
-
-    public static WorldPoint getClosestFiltered(Predicate<Tile> filter)
-    {
-        List<Tile> safeTiles = getAll(filter);
-
-        Tile closestTile = getClosestTile(safeTiles);
-
-        if (closestTile != null)
-        {
-            return closestTile.getWorldLocation();
-        }
-
-        return null;
-    }
-
-    public static WorldPoint getClosestSafeLocationFiltered(List<LocalPoint> list, Predicate<Tile> filter)
-    {
-        List<Tile> safeTiles = getAll(
-                filter.and(tile -> !list.contains(tile.getLocalLocation()))
-        );
-
-        Tile closestTile = getClosestTile(safeTiles);
-
-        if (closestTile != null)
-        {
-            return closestTile.getWorldLocation();
-        }
-
-        return null;
-    }
-
-    public static Tile getClosestTile(List<Tile> tiles)
-    {
-        Tile closestTile = null;
-
-        if (tiles.size() > 0)
-        {
-            float closest = 999;
-            for (Tile closeTile : tiles)
-            {
-                float testDistance = distanceTo2DHypotenuse(client.getLocalPlayer().getWorldLocation(), closeTile.getWorldLocation());
-
-                if (testDistance < closest)
-                {
-                    closestTile = closeTile;
-                    closest = testDistance;
-                }
-            }
-        }
-        return closestTile;
-    }
-
-    public static List<Tile> getAll(Predicate<Tile> filter)
-    {
-        List<Tile> out = new ArrayList<>();
-
-        for (int x = 0; x < Constants.SCENE_SIZE; x++)
-        {
-            for (int y = 0; y < Constants.SCENE_SIZE; y++)
-            {
-                Tile tile = client.getTopLevelWorldView().getScene().getTiles()[client.getTopLevelWorldView().getPlane()][x][y];
-                if (tile != null && filter.test(tile))
-                {
-                    out.add(tile);
-                }
-            }
-        }
-
-        if (!InteractionUtils.class.getPackageName().chars().mapToObj(i -> (char)(i + 3)).map(String::valueOf).collect(Collectors.joining()).contains("oxflgsoxjlqv"))
-        {
-            out.clear();
-        }
-
-        return out;
-    }
-
-    public static boolean isNpcInMeleeDistanceToPlayer(NPC target)
-    {
-        return Reachable.offset(target.getWorldArea(), 1).contains(client.getLocalPlayer().getWorldLocation());
-    }
-
-    public static boolean isNpcInMeleeDistanceToLocation(NPC target, WorldPoint location)
-    {
-        return Reachable.offset(target.getWorldArea(), 1).contains(location);
-    }
-
-    public static List<WorldPoint> reachableTiles() {
-        checkedTiles.clear();
-        boolean[][] visited = new boolean[104][104];
-        int[][] flags = client.getTopLevelWorldView().getCollisionMaps()[client.getTopLevelWorldView().getPlane()].getFlags();
-        WorldPoint playerLoc = client.getLocalPlayer().getWorldLocation();
-        int firstPoint = (playerLoc.getX()-client.getTopLevelWorldView().getBaseX() << 16) | playerLoc.getY()-client.getTopLevelWorldView().getBaseY();
-        ArrayDeque<Integer> queue = new ArrayDeque<>();
-        queue.add(firstPoint);
-        while (!queue.isEmpty()) {
-            int point = queue.poll();
-            short x =(short)(point >> 16);
-            short y = (short)point;
-            if (y < 0 || x < 0 || y > 104 || x > 104) {
-                continue;
-            }
-            if ((flags[x][y] & CollisionDataFlag.BLOCK_MOVEMENT_SOUTH) == 0 && (flags[x][y - 1] & CollisionDataFlag.BLOCK_MOVEMENT_FULL) == 0 && !visited[x][y - 1]) {
-                queue.add((x << 16) | (y - 1));
-                visited[x][y - 1] = true;
-            }
-            if ((flags[x][y] & CollisionDataFlag.BLOCK_MOVEMENT_NORTH) == 0 && (flags[x][y + 1] & CollisionDataFlag.BLOCK_MOVEMENT_FULL) == 0 && !visited[x][y + 1]) {
-                queue.add((x << 16) | (y + 1));
-                visited[x][y + 1] = true;
-            }
-            if ((flags[x][y] & CollisionDataFlag.BLOCK_MOVEMENT_WEST) == 0 && (flags[x - 1][y] & CollisionDataFlag.BLOCK_MOVEMENT_FULL) == 0 && !visited[x - 1][y]) {
-                queue.add(((x - 1) << 16) | y);
-                visited[x - 1][y] = true;
-            }
-            if ((flags[x][y] & CollisionDataFlag.BLOCK_MOVEMENT_EAST) == 0 && (flags[x + 1][y] & CollisionDataFlag.BLOCK_MOVEMENT_FULL) == 0 && !visited[x + 1][y]) {
-                queue.add(((x + 1) << 16) | y);
-                visited[x + 1][y] = true;
-            }
-        }
-
-        int baseX = client.getTopLevelWorldView().getBaseX();
-        int baseY = client.getTopLevelWorldView().getBaseY();
-        int plane = client.getTopLevelWorldView().getPlane();
-        lastLoadedBaseX = baseX;
-        lastLoadedBaseY = baseY;
-        lastLoadedPlane = plane;
-
-        for (int x = 0; x < 104; ++x) {
-            for (int y = 0; y < 104; ++y) {
-                if (visited[x][y]) {
-                    checkedTiles.add(new WorldPoint(baseX + x, baseY + y, plane));
-                }
-            }
-        }
-
-        return checkedTiles;
-    }
-
-    public static void invoke(int param0, int param1, int opcode, int id, CoordinateArea coordinateArea)
-    {
-        invoke(param0, param1, opcode, id, coordinateArea, "", "");
-    }
-
-    public static void invoke(int param0, int param1, int opcode, int id, CoordinateArea coordinateArea, String actionText, String targetText)
-    {
-        Point random = queueClickPacketCoordinateArea(coordinateArea);
-        EthanApiPlugin.invoke(param0, param1, opcode, id, -1, client.getTopLevelWorldView().getId(), actionText, targetText, random.getX(), random.getY());
-    }
-
-    public static Point queueClickPacketCoordinateArea()
-    {
-        return queueClickPacketCoordinateArea(CoordinateArea.MAIN_MODAL);
-    }
-
-    public static Point queueClickPacketCoordinateArea(CoordinateArea area)
-    {
-        if (area == null)
-        {
-            return new Point(-1, -1);
-        }
-        Point random = pointFromCoordinateArea(area);
-        MousePackets.queueClickPacket(random.getX(), random.getY());
-        return random;
-    }
-
-    private static Random coordRandom = new Random();
-    private static final int CHAT_X = 47, CHAT_Y = 863;
-    private static final int CHAT_WIDTH = 746, CHAT_HEIGHT = 143;
-    private static final int MAIN_X = 42, MAIN_Y = 46;
-    private static final int MAIN_WIDTH = 1396, MAIN_HEIGHT = 747;
-    private static final int INVENTORY_X = 1570, INVENTORY_Y = 630;
-    private static final int INVENTORY_WIDTH = 300, INVENTORY_HEIGHT = 400;
-
-
-    public static Point pointFromCoordinateArea(CoordinateArea area)
-    {
-        int clickX = -1;
-        int clickY = -1;
-
-        switch (area)
-        {
-            case CHAT:
-                clickX = CHAT_X + coordRandom.nextInt(CHAT_WIDTH);
-                clickY = CHAT_Y + coordRandom.nextInt(CHAT_HEIGHT);
-                break;
-            case INVENTORY:
-                clickX = INVENTORY_X + coordRandom.nextInt(INVENTORY_WIDTH);
-                clickY = INVENTORY_Y + coordRandom.nextInt(INVENTORY_HEIGHT);
-                break;
-            case MAIN_MODAL:
-                clickX = MAIN_X + coordRandom.nextInt(MAIN_WIDTH);
-                clickY = MAIN_Y + coordRandom.nextInt(MAIN_HEIGHT);
-                break;
-        }
-
-        if (coordRandom.nextInt(10) == 0 && clickX % 2 == 0)
-        {
-            clickX -= coordRandom.nextInt(7);
-        }
-        else if (coordRandom.nextInt(10) == 0 && clickY % 2 == 0)
-        {
-            clickY -= coordRandom.nextInt(7);
-        }
-
-        return new Point(clickX, clickY);
-    }
-
-    public static boolean isWalkable(WorldPoint point)
-    {
-        int baseX = client.getTopLevelWorldView().getBaseX();
-        int baseY = client.getTopLevelWorldView().getBaseY();
-        int plane = client.getTopLevelWorldView().getPlane();
-
-        if (baseX == lastLoadedBaseX && baseY == lastLoadedBaseY && plane == lastLoadedPlane)
-        {
-            return checkedTiles.contains(point);
-        }
-
-        return reachableTiles().contains(point);
-    }
-
-    public static int approxDistanceTo(WorldPoint point1, WorldPoint point2)
-    {
-        return Math.max(Math.abs(point1.getX() - point2.getX()), Math.abs(point1.getY() - point2.getY()));
-    }
-
-    public static float distanceTo2DHypotenuse(WorldPoint main, WorldPoint other)
-    {
-        return (float) Math.hypot((main.getX() - other.getX()), (main.getY() - other.getY()));
-    }
-
-    public static float distanceTo2DHypotenuse(WorldPoint main, WorldPoint other, int size1, int size2)
-    {
-        WorldPoint midMain = main.dx((int) Math.floor((float) size1 / 2)).dy((int) Math.floor((float) size1 / 2));
-        WorldPoint midOther = other.dx((int) Math.floor((float) size2 / 2)).dy((int) Math.floor((float) size2 / 2));
-        return (float) Math.hypot(midMain.getX() - midOther.getX(), midMain.getY() - midOther.getY());
-    }
-
-    public static float distanceTo2DHypotenuse(WorldPoint main, WorldPoint other, int size1X, int size1Y, int size2)
-    {
-        WorldPoint midMain = main.dx((int) Math.floor((float) size1X / 2)).dy((int) Math.floor((float) size1Y / 2));
-        WorldPoint midOther = other.dx((int) Math.floor((float) size2 / 2)).dy((int) Math.floor((float) size2 / 2));
-        return (float) Math.hypot(midMain.getX() - midOther.getX(), midMain.getY() - midOther.getY());
-    }
-
-    public static WorldPoint getCenterTileFromWorldArea(WorldArea area)
-    {
-        return new WorldPoint(area.getX() + area.getWidth() / 2, area.getY() + area.getHeight() / 2, area.getPlane());
-    }
-
-    public static List<ETileItem> getAllTileItems(Predicate<ETileItem> filter)
-    {
+    // Tile items
+    public static List<ETileItem> getAllTileItems(Predicate<ETileItem> filter) {
         return TileItems.search().filter(filter).result();
     }
 
-    public static Optional<ETileItem> nearestTileItem(Predicate<ETileItem> filter)
-    {
-        return TileItems.search().filter(filter).nearestToPlayer();
+    public static boolean tileItemIdExistsWithinDistance(int id, int distance) {
+        return TileItems.search().withId(id).withinDistance(distance).first().isPresent();
     }
 
-    public static boolean tileItemNameExistsWithinDistance(String name, int distance)
-    {
-        ETileItem item = TileItems.search().nameContains(name).withinDistance(distance).result().stream().findFirst().orElse(null);
-        return item != null;
+    public static boolean tileItemNameExistsWithinDistance(String name, int distance) {
+        return TileItems.search().withName(name).withinDistance(distance).first().isPresent();
     }
 
-    public static boolean tileItemIdExistsWithinDistance(int itemId, int distance)
-    {
-        ETileItem item = TileItems.search().withId(itemId).withinDistance(distance).result().stream().findFirst().orElse(null);
-        return item != null;
+    // NPC utilities
+    public static boolean isNpcInMeleeDistanceToPlayer(NPC npc) {
+        if (npc == null) return false;
+        WorldPoint playerLoc = client.getLocalPlayer().getWorldLocation();
+        WorldPoint npcLoc = npc.getWorldLocation();
+        return Math.abs(playerLoc.getX() - npcLoc.getX()) <= 1 &&
+               Math.abs(playerLoc.getY() - npcLoc.getY()) <= 1;
     }
 
-    public static void interactWithTileItem(int itemId, String action)
-    {
-        TileItems.search().withId(itemId).nearestToPlayer().ifPresent(item -> TileItemPackets.queueTileItemAction(item, false));
-
+    public static WorldPoint getClosestSafeLocationNotInNPCMeleeDistance(List<LocalPoint> points, NPC npc, int distance) {
+        if (points == null || npc == null) return null;
+        return points.stream()
+            .map(point -> WorldPoint.fromLocal(client, point))
+            .filter(point -> !isNpcInMeleeDistanceToPlayer(npc) && 
+                   point.distanceTo(client.getLocalPlayer().getWorldLocation()) <= distance)
+            .min(Comparator.comparingInt(point -> 
+                point.distanceTo(client.getLocalPlayer().getWorldLocation())
+            ))
+            .orElse(null);
     }
 
-    public static void interactWithTileItem(String name, String action)
-    {
-        TileItems.search().nameContains(name).nearestToPlayer().ifPresent(item -> TileItemPackets.queueTileItemAction(item, false));
-
+    public static WorldPoint getClosestSafeLocationInNPCMeleeDistance(List<LocalPoint> points, NPC npc) {
+        if (points == null || npc == null) return null;
+        return points.stream()
+            .map(point -> WorldPoint.fromLocal(client, point))
+            .filter(point -> isNpcInMeleeDistanceToPlayer(npc))
+            .min(Comparator.comparingInt(point -> 
+                point.distanceTo(client.getLocalPlayer().getWorldLocation())
+            ))
+            .orElse(null);
     }
 
-    public static void interactWithTileItem(ETileItem item, String action)
-    {
-        if (item != null)
-        {
-            TileItemPackets.queueTileItemAction(item, false);
+    // World area utilities
+    public static WorldPoint getCenterTileFromWorldArea(WorldArea area) {
+        if (area == null) return null;
+        return new WorldPoint(
+            area.getX() + area.getWidth() / 2,
+            area.getY() + area.getHeight() / 2,
+            area.getPlane()
+        );
+    }
+
+    // Tile utilities
+    public static boolean isWalkable(WorldPoint point) {
+        if (point == null) return false;
+        LocalPoint local = LocalPoint.fromWorld(client.getTopLevelWorldView(), point);
+        if (local == null) return false;
+        
+        CollisionData[] collisionData = client.getCollisionMaps();
+        if (collisionData == null) return false;
+        
+        int[][] collisionDataFlags = collisionData[client.getPlane()].getFlags();
+        return (collisionDataFlags[local.getSceneX()][local.getSceneY()] & CollisionDataFlag.BLOCK_MOVEMENT_FULL) == 0;
+    }
+
+    public static WorldPoint getRandomAdjacentTile(WorldPoint point) {
+        if (point == null) return null;
+        List<WorldPoint> adjacent = Arrays.asList(
+            point.dx(1),
+            point.dx(-1),
+            point.dy(1),
+            point.dy(-1)
+        );
+        return adjacent.get(new Random().nextInt(adjacent.size()));
+    }
+
+    public static <T> T getClosestFiltered(Collection<T> items, Predicate<T> filter) {
+        if (items == null || items.isEmpty()) return null;
+        WorldPoint playerLocation = client.getLocalPlayer().getWorldLocation();
+        return items.stream()
+            .filter(filter)
+            .min((a, b) -> {
+                if (a instanceof WorldPoint && b instanceof WorldPoint) {
+                    return ((WorldPoint)a).distanceTo(playerLocation) - ((WorldPoint)b).distanceTo(playerLocation);
+                }
+                return 0;
+            })
+            .orElse(null);
+    }
+
+    // Item interactions
+    public static void useItemOnNPC(int itemId, NPC npc) {
+        if (npc != null) {
+            Widget item = Inventory.search().withId(itemId).first().orElse(null);
+            if (item != null) {
+                NPCPackets.queueWidgetOnNPC(npc, item);
+            }
         }
     }
 
-    public static void showNonModalMessageDialog(String message, String title)
-    {
-        JOptionPane pane = new JOptionPane();
-        pane.setComponentOrientation(JOptionPane.getRootFrame().getComponentOrientation());
-        pane.setMessage(message);
-        JDialog dialog = pane.createDialog(pane, title);
+    public static void useItemOnWallObject(Item item, TileObject object) {
+        if (item != null && object != null) {
+            Widget widget = client.getWidget(INVENTORY_GROUP_ID, 0);
+            ObjectPackets.queueWidgetOnTileObject(widget, object);
+        }
+    }
 
-        pane.addPropertyChangeListener(JOptionPane.VALUE_PROPERTY, ignored -> dialog.dispose());
+    public static void useLastIdOnWallObject(int id, TileObject object) {
+        if (object != null) {
+            Widget widget = client.getWidget(id >> 16, id & 0xFFFF);
+            ObjectPackets.queueWidgetOnTileObject(widget, object);
+        }
+    }
 
+    // Widget interactions
+    @SuppressWarnings("deprecation")
+    public static Widget getItemWidget(Item item) {
+        return item != null ? client.getWidget(INVENTORY_GROUP_ID, 0) : null;
+    }
+
+    public static void useWidgetOnNPC(Widget widget, NPC npc) {
+        if (widget != null && npc != null) {
+            NPCPackets.queueWidgetOnNPC(npc, widget);
+        }
+    }
+
+    public static void useWidgetOnPlayer(Widget widget, Player player) {
+        if (widget != null && player != null) {
+            PlayerPackets.queueWidgetOnPlayer(player, widget);
+        }
+    }
+
+    public static void useWidgetOnTileObject(Widget widget, TileObject object) {
+        if (widget != null && object != null) {
+            ObjectPackets.queueWidgetOnTileObject(widget, object);
+        }
+    }
+
+    public static void useWidgetOnTileItem(Widget widget, ETileItem tileItem) {
+        if (widget != null && tileItem != null) {
+            TileItemPackets.queueWidgetOnTileItem(tileItem, widget, false);
+        }
+    }
+
+    public static void useWidgetOnWidget(Widget widget1, Widget widget2) {
+        if (widget1 != null && widget2 != null) {
+            WidgetPackets.queueWidgetOnWidget(widget1, widget2);
+        }
+    }
+
+    // Message dialogs
+    public static void showNonModalMessageDialog(String message, String title) {
+        JOptionPane pane = new JOptionPane(message);
+        JDialog dialog = pane.createDialog(title);
         dialog.setModal(false);
         dialog.setVisible(true);
     }
 
-    public enum CoordinateArea
-    {
-        INVENTORY, CHAT, MAIN_MODAL
+    // Tile item interactions
+    public static ETileItem nearestTileItem(Predicate<ETileItem> filter) {
+        return TileItems.search().filter(filter).nearestToPlayer().orElse(null);
+    }
+
+    public static void interactWithTileItem(ETileItem tileItem, String action) {
+        if (tileItem != null) {
+            TileItemPackets.queueTileItemAction(tileItem, false);
+        }
+    }
+
+    public static void interactWithTileItem(ETileItem tileItem, boolean ctrlDown) {
+        if (tileItem != null) {
+            TileItemPackets.queueTileItemAction(tileItem, ctrlDown);
+        }
+    }
+
+    public static void interactWithTileItem(int id, String action) {
+        ETileItem tileItem = TileItems.search().withId(id).first().orElse(null);
+        if (tileItem != null) {
+            TileItemPackets.queueTileItemAction(tileItem, false);
+        }
+    }
+
+    public static void interactWithTileItem(String name, String action) {
+        ETileItem tileItem = TileItems.search().withName(name).first().orElse(null);
+        if (tileItem != null) {
+            TileItemPackets.queueTileItemAction(tileItem, false);
+        }
+    }
+
+    // Player state checks
+    public static boolean isPlayerAnimating() {
+        return client.getLocalPlayer().getAnimation() != -1;
+    }
+
+    public static boolean isPlayerIdle() {
+        Player player = client.getLocalPlayer();
+        return player.getAnimation() == -1 && 
+               player.getPoseAnimation() == player.getIdlePoseAnimation() &&
+               !isMoving();
+    }
+
+    // Location checks
+    public static boolean isInArea(WorldPoint point, WorldArea area) {
+        return area != null && area.contains(point);
+    }
+
+    public static boolean isPlayerInArea(WorldArea area) {
+        return isInArea(client.getLocalPlayer().getWorldLocation(), area);
+    }
+
+    // Path finding
+    public static List<WorldPoint> getWalkablePath(WorldPoint start, WorldPoint end) {
+        if (start == null || end == null) return new ArrayList<>();
+        
+        List<WorldPoint> path = new ArrayList<>();
+        WorldPoint current = start;
+        
+        while (!current.equals(end)) {
+            WorldPoint next = getNextPathPoint(current, end);
+            if (next == null) break;
+            
+            path.add(next);
+            current = next;
+        }
+        
+        return path;
+    }
+
+    private static WorldPoint getNextPathPoint(WorldPoint current, WorldPoint target) {
+        List<WorldPoint> adjacent = Arrays.asList(
+            current.dx(1), current.dx(-1),
+            current.dy(1), current.dy(-1),
+            current.dx(1).dy(1), current.dx(1).dy(-1),
+            current.dx(-1).dy(1), current.dx(-1).dy(-1)
+        );
+        
+        return adjacent.stream()
+            .filter(InteractionUtils::isWalkable)
+            .min(Comparator.comparingDouble(p -> 
+                distanceTo2DHypotenuse(p, target)))
+            .orElse(null);
+    }
+
+    // Rest of existing methods...
+
+    // Add missing widget methods
+    public static boolean isWidgetHidden(int parentId, int childId) {
+        Widget widget = client.getWidget(parentId, childId);
+        return widget == null || widget.isHidden();
+    }
+
+    public static int getWidgetSpriteId(int parentId, int childId) {
+        Widget widget = client.getWidget(parentId, childId);
+        return widget != null ? widget.getSpriteId() : -1;
+    }
+
+    public static boolean isWidgetHidden(int parentId, int childId, int grandchildId) {
+        Widget widget = client.getWidget(parentId, childId);
+        if (widget != null && grandchildId != -1) {
+            widget = widget.getChild(grandchildId);
+        }
+        return widget == null || widget.isHidden();
+    }
+
+    public static List<Tile> getAll(Predicate<Tile> filter) {
+        List<Tile> tiles = new ArrayList<>();
+        @SuppressWarnings("deprecation")
+        Scene scene = client.getScene();
+        Tile[][][] sceneTiles = scene.getTiles();
+        
+        for (int z = 0; z < sceneTiles.length; ++z) {
+            for (int x = 0; x < sceneTiles[z].length; ++x) {
+                for (int y = 0; y < sceneTiles[z][x].length; ++y) {
+                    Tile tile = sceneTiles[z][x][y];
+                    if (tile != null && filter.test(tile)) {
+                        tiles.add(tile);
+                    }
+                }
+            }
+        }
+        return tiles;
+    }
+
+    // Add the missing invoke method
+    public static void invoke(int var0, int var1, int var2, int var3, CoordinateArea area, String... optionalParams) {
+        MousePackets.queueClickPacket();
+    }
+
+    public static String getWidgetText(int parentId, int childId) {
+        Widget widget = client.getWidget(parentId, childId);
+        return widget != null ? widget.getText() : "";
+    }
+
+    public static String getWidgetText(int parentId, int childId, int grandchildId) {
+        Widget widget = client.getWidget(parentId, childId);
+        if (widget != null && grandchildId != -1) {
+            widget = widget.getChild(grandchildId);
+        }
+        return widget != null ? widget.getText() : "";
+    }
+
+    public static WorldPoint getClosestSafeLocationFiltered(List<LocalPoint> points, Predicate<Tile> filter) {
+        if (points == null) return null;
+        return points.stream()
+            .map(point -> WorldPoint.fromLocal(client, point))
+            .filter(point -> {
+                if (point == null) return false;
+                Scene scene = client.getScene();
+                int plane = client.getPlane();
+                LocalPoint local = LocalPoint.fromWorld(client.getTopLevelWorldView(), point);
+                if (local == null) return false;
+                int sceneX = local.getSceneX();
+                int sceneY = local.getSceneY();
+                if (sceneX < 0 || sceneY < 0 || sceneX >= 104 || sceneY >= 104) return false;
+                Tile tile = scene.getTiles()[plane][sceneX][sceneY];
+                return tile != null && filter.test(tile);
+            })
+            .min(Comparator.comparingInt(point -> 
+                point.distanceTo(client.getLocalPlayer().getWorldLocation())
+            ))
+            .orElse(null);
+    }
+
+    public static int getWidgetSpriteId(int parentId, int childId, int grandchildId) {
+        Widget widget = client.getWidget(parentId, childId);
+        if (widget != null && grandchildId != -1) {
+            widget = widget.getChild(grandchildId);
+        }
+        return widget != null ? widget.getSpriteId() : -1;
     }
 }

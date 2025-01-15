@@ -37,7 +37,7 @@ public class InfernoWaveOverlay extends Overlay
 		this.config = config;
 		this.panelComponent = new PanelComponent();
 		setPosition(OverlayPosition.TOP_RIGHT);
-		setPriority(OverlayPriority.HIGH);
+		setPriority(OverlayPriority.MED);
 		panelComponent.setPreferredSize(new Dimension(160, 0));
 	}
 

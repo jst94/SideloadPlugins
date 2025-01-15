@@ -535,17 +535,7 @@ public class InfernoOverlay extends Overlay
 					(int) prayerWidget.getBounds().getHeight());
 				prayerRectangle.translate((int) prayerWidget.getBounds().getX(), (int) prayerWidget.getBounds().getY());
 
-				//TODO: Config values for these colors
-				Color prayerColor;
-				if (plugin.getClosestAttack() == prayerForAttack)
-				{
-					prayerColor = Color.GREEN;
-				}
-				else
-				{
-					prayerColor = Color.RED;
-				}
-
+				Color prayerColor = plugin.getClosestAttack() == prayerForAttack ? Color.GREEN : Color.RED;
 				renderOutlinePolygon(graphics, prayerRectangle, prayerColor);
 			}
 		}

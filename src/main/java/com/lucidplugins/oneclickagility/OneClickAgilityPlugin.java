@@ -334,7 +334,7 @@ public class OneClickAgilityPlugin extends Plugin
             return;
         }
 
-        ETileItem mog = InteractionUtils.nearestTileItem(item -> item.getTileItem().getId() == MARK_OF_GRACE).orElse(null);
+        ETileItem mog = InteractionUtils.nearestTileItem(item -> item.getTileItem().getId() == MARK_OF_GRACE);
         if (config.pickUpMarks() && mog != null && obstacleArea.containsObject(mog.getLocation()))
         {
             lastClickTick = client.getTickCount();
@@ -470,7 +470,7 @@ public class OneClickAgilityPlugin extends Plugin
     public ArrayList<Widget> getItems(Collection<Integer> ids)
     {
         client.runScript(6009, 9764864, 28, 1, -1);
-        Widget inventoryWidget = client.getWidget(WidgetInfo.INVENTORY);
+        Widget inventoryWidget = client.getWidget(WidgetInfo.INVENTORY.getId());
         ArrayList<Widget> matchedItems = new ArrayList<>();
 
         if (inventoryWidget != null && inventoryWidget.getDynamicChildren() != null)

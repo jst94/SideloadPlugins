@@ -14,7 +14,7 @@ repositories {
     mavenCentral()
 }
 
-val runeLiteVersion = "1.10.46"
+val runeLiteVersion = "1.10.46.1"
 
 dependencies {
     implementation(files("lib/EthanVannPlugins-5.4.jar"))
