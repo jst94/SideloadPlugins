@@ -21,6 +21,7 @@ import net.runelite.client.input.KeyListener;
 import net.runelite.client.input.KeyManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
+import net.runelite.client.plugins.PluginInstantiationException;
 import org.pf4j.Extension;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -362,7 +363,7 @@ public class LucidCustomPrayersPlugin extends Plugin implements KeyListener
 
     private void getEquipmentChanges()
     {
-        Widget bankWidget = client.getWidget(WidgetInfo.BANK_ITEM_CONTAINER);
+        Widget bankWidget = client.getWidget(WidgetInfo.BANK_INVENTORY_ITEMS_CONTAINER);
         if (bankWidget != null && !bankWidget.isSelfHidden())
         {
             return;

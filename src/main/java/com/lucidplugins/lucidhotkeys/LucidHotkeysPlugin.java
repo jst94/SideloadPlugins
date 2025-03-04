@@ -1337,6 +1337,8 @@ public class LucidHotkeysPlugin extends Plugin implements KeyListener
                 return InteractionUtils.isWidgetHidden(param1Int, param2Int, param3Int);
             case WIDGET_SUB_IS_SHOWING:
                 return !InteractionUtils.isWidgetHidden(param1Int, param2Int, param3Int);
+            case VAR_VALUE_GREATER_THAN:
+                return param1Int > param2Int;
             default:
                 break;
         }
@@ -1356,7 +1358,7 @@ public class LucidHotkeysPlugin extends Plugin implements KeyListener
         int param1Int = -69420;
         int param2Int = -69420;
         int param3Int = -69420;
-        int param4Int = -69420;
+        
 
         if (actionParams.length >= 2)
         {

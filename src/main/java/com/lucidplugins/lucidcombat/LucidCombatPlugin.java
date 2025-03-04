@@ -25,8 +25,6 @@ import net.runelite.client.input.KeyManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.overlay.OverlayManager;
-import org.pf4j.Extension;
-
 import javax.inject.Inject;
 import java.awt.*;
 import java.awt.event.KeyEvent;

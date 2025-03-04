@@ -3,7 +3,6 @@ package com.lucidplugins.api.utils;
 import com.example.InteractionApi.PrayerInteraction;
 import com.example.Packets.WidgetPackets;
 import net.runelite.api.*;
-import net.runelite.api.widgets.WidgetInfo;
 import net.runelite.client.RuneLite;
 
 import java.util.stream.Collectors;
@@ -59,7 +58,7 @@ public class CombatUtils
             return;
         }
 
-        if (!client.isPrayerActive(checkPrayer(prayer)))
+        if (!client.isPrayerActive(prayer))
         {
             PrayerInteraction.togglePrayer(checkPrayer(prayer));
         }
@@ -67,7 +66,7 @@ public class CombatUtils
 
     public static void deactivatePrayer(Prayer prayer)
     {
-        if (client == null || checkPrayer(prayer) == null || client.getBoostedSkillLevel(Skill.PRAYER) == 0 || !client.isPrayerActive(checkPrayer(prayer)))
+        if (client == null || checkPrayer(prayer) == null || client.getBoostedSkillLevel(Skill.PRAYER) == 0 || !client.isPrayerActive(prayer))
         {
             return;
         }
@@ -95,7 +94,7 @@ public class CombatUtils
         {
             for (Prayer prayer : PrayerInteraction.prayerMap.keySet())
             {
-                if (client.isPrayerActive(prayer))
+                if (client.isPrayerActive(prayer) )
                 {
                     PrayerInteraction.togglePrayer(prayer);
                 }
@@ -115,7 +114,7 @@ public class CombatUtils
             return;
         }
 
-        if (client.getBoostedSkillLevel(Skill.PRAYER) == 0 && !client.isPrayerActive(checkPrayer(prayer)))
+        if (client.getBoostedSkillLevel(Skill.PRAYER) == 0 && !client.isPrayerActive(prayer) )
         {
             return;
         }
@@ -186,7 +185,7 @@ public class CombatUtils
 
         for (Prayer over : overheads)
         {
-            if (client.isPrayerActive(over))
+            if (client.isPrayerActive(over) )
             {
                 return over;
             }
@@ -201,7 +200,7 @@ public class CombatUtils
 
         for (Prayer off : offensives)
         {
-            if (client.isPrayerActive(off))
+            if (client.isPrayerActive(off) )
             {
                 return off;
             }

@@ -14,18 +14,17 @@ import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
-import org.pf4j.Extension;
 
 import javax.inject.Inject;
 import java.util.Optional;
 
-@Extension
+@javax.inject.Singleton
 @PluginDescriptor(
         name = "JST Fletcher",
         description = "Automated fletching plugin using EthanApi",
         tags = {"fletching", "crafting", "automation"}
 )
-public class JstFletchplugin extends Plugin {
+public class JstFletchPlugin extends Plugin {
     private static final int KNIFE_ID = 946;
     private static final int FLETCHING_WIDGET_GROUP = 270;
     private static final int FLETCHING_WIDGET_CHILD = 14;
@@ -123,7 +122,7 @@ public class JstFletchplugin extends Plugin {
 
     private void handleBanking() {
         if (!Bank.isOpen()) {
-            Widget bankWidget = client.getWidget(WidgetInfo.BANK_CONTAINER);
+            Widget bankWidget = client.getWidget(BANK_WIDGET_ID >> 16, BANK_WIDGET_ID & 0xFFFF);
             if (bankWidget != null) {
                 MousePackets.queueClickPacket();
                 WidgetPackets.queueWidgetActionPacket(1, BANK_WIDGET_ID, -1, 0);

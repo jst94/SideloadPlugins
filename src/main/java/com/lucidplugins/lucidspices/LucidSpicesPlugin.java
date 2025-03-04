@@ -17,7 +17,6 @@ import net.runelite.client.plugins.PluginInstantiationException;
 import net.runelite.client.plugins.PluginManager;
 import org.pf4j.Extension;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import javax.swing.*;
@@ -51,7 +50,7 @@ public class LucidSpicesPlugin extends Plugin
 
     private boolean shutdown = false;
 
-    private Logger log = LoggerFactory.getLogger(this.getClass().getSimpleName());
+    private Logger log = org.slf4j.LoggerFactory.getLogger(this.getClass().getSimpleName());
 
     private Random rand = new Random();
 

@@ -10,8 +10,8 @@ import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.overlay.OverlayManager;
-import org.pf4j.Extension;
 import javax.inject.Inject;
+import javax.inject.Singleton;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
@@ -21,7 +21,7 @@ import java.util.Arrays;
 import net.runelite.api.events.MenuEntryAdded;
 import net.runelite.api.events.WidgetLoaded;
 
-@Extension
+@Singleton
 @PluginDescriptor(
         name = "<html><font color=\"#32CD32\">Lucid</font> <font color=\"#FF6B6B\">Plugin Helper</font></html>",
         description = "Helps gather information for plugin development",
@@ -94,21 +94,29 @@ public class LucidPluginHelper extends Plugin {
             !event.getTarget().isEmpty() || 
             event.getType() != MenuAction.WALK.getId()) {
             
+            // Get the corresponding MenuAction enum name if possible
+            String actionName = "UNKNOWN";
+            for (MenuAction action : MenuAction.values()) {
+                if (action.getId() == event.getType()) {
+                    actionName = action.name();
+                    break;
+                }
+            }
+            
             String[] info = new String[]{
-                "GameObject: " + (event.getIdentifier() != 0 ? event.getIdentifier() : ""),
-                "Widget: " + (event.getActionParam0() != 0 ? event.getActionParam0() : ""),
-                "Packet: Type: " + event.getType(),
+                "ID: " + (event.getIdentifier() != 0 ? event.getIdentifier() : "-"),
+                "Widget ID: " + (event.getActionParam0() != 0 ? event.getActionParam0() : "-"),
+                "Param1: " + (event.getActionParam1() != 0 ? event.getActionParam1() : "-"),
+                "Action: " + actionName + " (" + event.getType() + ")",
                 "Option: " + event.getOption(),
                 "Target: " + (event.getTarget().isEmpty() ? "-" : event.getTarget())
             };
             lastInteraction = info;
             
             // Log in a clean format
-            StringBuilder logEntry = new StringBuilder("\n=== Interaction Log ===\n");
+            StringBuilder logEntry = new StringBuilder("\n=== Menu Entry Added ===\n");
             for (String line : info) {
-                if (!line.endsWith(": ") && !line.endsWith(": -")) {
-                    logEntry.append(line).append("\n");
-                }
+                logEntry.append(line).append("\n");
             }
             logEntry.append("=====================");
             log.info(logEntry.toString());

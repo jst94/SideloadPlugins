@@ -51,8 +51,6 @@ import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.overlay.OverlayManager;
 import net.runelite.client.ui.overlay.infobox.InfoBoxManager;
 import org.apache.commons.lang3.ArrayUtils;
-import org.pf4j.Extension;
-
 import javax.inject.Inject;
 import java.awt.*;
 import java.util.ArrayList;

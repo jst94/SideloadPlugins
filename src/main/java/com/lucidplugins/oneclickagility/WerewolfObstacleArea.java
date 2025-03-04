@@ -25,7 +25,7 @@ public class WerewolfObstacleArea extends ObstacleArea
         NPC werewolf = NPCs.search().withId(5927).first().orElse(null);
         if (client.getLocalPlayer().getWorldLocation().getY() > 9875)
         {
-            return client.createMenuEntry(-1)
+            return client.createMenuEntry(1)
                     .setOption("Walk here")
                     .setTarget("")
                     .setIdentifier(0)
@@ -36,7 +36,7 @@ public class WerewolfObstacleArea extends ObstacleArea
                     .setForceLeftClick(false);
         }
         else if (getItems(Collections.singletonList(ItemID.STICK),client) != null && werewolf != null)
-            return client.createMenuEntry(-1)
+            return client.createMenuEntry(1)
                     .setOption("Give-Stick")
                     .setTarget("Agility Trainer")
                     .setIdentifier(werewolf.getIndex())

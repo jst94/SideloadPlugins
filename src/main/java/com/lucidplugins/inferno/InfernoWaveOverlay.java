@@ -7,7 +7,6 @@ import lombok.AccessLevel;
 import lombok.Setter;
 import net.runelite.client.ui.overlay.Overlay;
 import net.runelite.client.ui.overlay.OverlayPosition;
-import net.runelite.client.ui.overlay.OverlayPriority;
 import net.runelite.client.ui.overlay.components.PanelComponent;
 
 import java.awt.*;
@@ -37,7 +36,7 @@ public class InfernoWaveOverlay extends Overlay
 		this.config = config;
 		this.panelComponent = new PanelComponent();
 		setPosition(OverlayPosition.TOP_RIGHT);
-		setPriority(OverlayPriority.MED);
+		setPriority(1); // Medium priority (previously OverlayPriority.MED)
 		panelComponent.setPreferredSize(new Dimension(160, 0));
 	}
 

@@ -1,2 +1,1 @@
-rootProject.name = "SideloadPlugins"
-
+@Suppress("PropertyName") rootProject.name = "SideloadPlugins"
